@@ -224,6 +224,16 @@ def dashboard(request):
         'gold': '#ffd700',          # Золотой
         'platinum': '#e5e4e2',      # Платиновый
         'metal': '#71797E',         # Металлик
+        'red': '#dc3545',           # Красный
+        'blue': '#0d6efd',          # Синий
+        'green': '#198754',         # Зеленый
+        'purple': '#6f42c1',        # Фиолетовый
+        'orange': '#fd7e14',        # Оранжевый
+        'teal': '#20c997',          # Бирюзовый
+        'pink': '#d63384',          # Розовый
+        'indigo': '#6610f2',        # Индиго
+        'cyan': '#0dcaf0',          # Голубой
+        'brown': '#795548',         # Коричневый
     }
     
     # Добавляем цвета для карт
@@ -424,7 +434,7 @@ def edit_target(request, target_id):
             target.current_amount = request.POST.get('current_amount')
             target.deadline = request.POST.get('deadline')
             target.save()
-            messages.success(request, 'Цель успеш��о обновлена')
+            messages.success(request, 'Цель успешо обновлена')
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении цели: {str(e)}')
     return redirect('operations:targets')
@@ -604,7 +614,7 @@ def main(request):
         total=Sum('amount')
     ).order_by('month')
 
-    # Подготовка данных для графиков
+    # Подготовка данных для ��рафиков
     months = []
     income_data = []
     expense_data = []
