@@ -199,5 +199,6 @@
 **Начните управлять своими финансами уже сегодня!** 🌟 💫 ✨ 💰
 
 ## Скриншоты
-![git_screen](https://github.com/user-attachments/assets/7d858df4-6704-44a9-9c6d-c26e1982c514)
+
+![git_screen](https://github.com/user-attachments/assets/e3f6bb72-046d-4390-8263-abcc9876a693)
 
