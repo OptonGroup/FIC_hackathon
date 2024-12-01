@@ -138,7 +138,7 @@
 
         .profile-section h6 {
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 1.1rem;
             margin-bottom: 0;
         }
 
@@ -253,8 +253,9 @@
                 <button class="minimize-btn" id="minimizeAI">_</button>
             </div>
         </div>
-        <div class="ai-assistant-content" style="max-height: 400px;">
+        <div class="ai-assistant-content">
             <div class="ai-messages" id="aiMessages">
+                <!-- Сообщения будут добавляться здесь динамически -->
                 <div class="ai-message">
                     <i class="bi bi-robot"></i>
                     <div class="message-content">
@@ -278,10 +279,12 @@
             const aiMessages = document.getElementById('aiMessages');
             
             function addMessage(message, isUser = false) {
+                // Обрабываем markdown только для сообщений от AI
                 const messageContent = isUser ? message : marked.parse(message);
                 
                 const messageHTML = `
                     <div class="ai-message ${isUser ? 'user' : ''}">
+                // Обрабаываем markdown только для сообщений от AI
                         <div class="message-content markdown-content">
                             ${messageContent}
                         </div>
@@ -535,6 +538,11 @@
             <li class="nav-item">
                 <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
                     <i class="bi bi-credit-card-2-front"></i> Мои карты
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:calendar' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i> Календарь
                 </a>
             </li>
         </ul>

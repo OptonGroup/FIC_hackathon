@@ -1,0 +1,296 @@
+{% extends 'base_operations.html' %}
+{% load static %}
+
+{% block content %}
+<div class="calendar-container">
+    <div class="calendar-header mb-4">
+        <h2 class="calendar-title">{{ month_name }}</h2>
+        <div class="calendar-nav">
+            <a href="?year={{ prev_month|slice:':4' }}&month={{ prev_month|slice:'5:7' }}" class="btn btn-outline-primary">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <a href="?year={{ next_month|slice:':4' }}&month={{ next_month|slice:'5:7' }}" class="btn btn-outline-primary">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="calendar-grid">
+        <div class="calendar-weekdays">
+            <div>Пн</div>
+            <div>Вт</div>
+            <div>Ср</div>
+            <div>Чт</div>
+            <div>Пт</div>
+            <div>Сб</div>
+            <div>Вс</div>
+        </div>
+        
+        <div class="calendar-days">
+            {% for day in calendar_data %}
+                {% if day.is_empty %}
+                    <div class="calendar-day empty"></div>
+                {% else %}
+                    <div class="calendar-day" 
+                         style="background-color: {{ day.color }}"
+                         data-bs-toggle="modal" 
+                         data-bs-target="#dayModal{{ day.date|date:'Ymd' }}">
+                        <div class="day-number">{{ day.date|date:"d" }}</div>
+                        {% if day.transactions.exists or day.regular_payments.exists %}
+                            <div class="day-indicators">
+                                {% if day.total_income > 0 %}
+                                    <span class="indicator income">+{{ day.total_income|floatformat:0 }}₽</span>
+                                {% endif %}
+                                {% if day.total_expense > 0 %}
+                                    <span class="indicator expense">-{{ day.total_expense|floatformat:0 }}₽</span>
+                                {% endif %}
+                                {% if day.regular_payments.exists %}
+                                    <i class="bi bi-clock-history"></i>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Модальное окно для дня -->
+                    <div class="modal fade" id="dayModal{{ day.date|date:'Ymd' }}" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{ day.date|date:"d F Y" }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if day.transactions.exists or day.regular_payments.exists %}
+                                        {% if day.transactions.exists %}
+                                        <h6>Транзакции:</h6>
+                                        <div class="transactions-list">
+                                            {% for transaction in day.transactions %}
+                                            <div class="transaction-item">
+                                                <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ transaction.get_type_display }}
+                                                </span>
+                                                <span class="amount">{{ transaction.amount }} ₽</span>
+                                                <span class="category">{{ transaction.category.name }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+
+                                        {% if day.regular_payments.exists %}
+                                        <h6 class="mt-3">Регулярные платежи:</h6>
+                                        <div class="regular-payments-list">
+                                            {% for payment in day.regular_payments %}
+                                            <div class="payment-item">
+                                                <span class="name">{{ payment.name }}</span>
+                                                <span class="amount">{{ payment.amount }} ₽</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <p class="text-muted">Нет запланированных операций</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-container {
+    padding: 30px;
+    background: var(--primary-color);
+    border-radius: 24px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.calendar-title {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.calendar-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    text-align: center;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.calendar-weekdays > div {
+    padding: 5px;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.calendar-day {
+    width: 100%;
+    height: 100px;
+    padding: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-day.empty {
+    background-color: transparent;
+    cursor: default;
+}
+
+.calendar-day:not(.empty):hover {
+    transform: scale(1.02);
+}
+
+.day-number {
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.day-indicators {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.75rem;
+}
+
+.indicator {
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.indicator.income {
+    color: #18dccb;
+}
+
+.indicator.expense {
+    color: #f87f0e;
+}
+
+.transaction-item,
+.payment-item {
+    padding: 10px;
+    border-bottom: 1px solid var(--neutral-3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .calendar-container {
+        padding: 10px;
+        margin: 10px auto;
+    }
+
+    .calendar-days {
+        gap: 4px;
+    }
+
+    .calendar-day {
+        height: 70px;
+        padding: 4px;
+    }
+
+    .calendar-weekdays > div {
+        padding: 3px;
+    }
+
+    .day-number {
+        font-size: 0.9rem;
+    }
+
+    .day-indicators {
+        font-size: 0.65rem;
+    }
+    
+    .calendar-title {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-day {
+        height: 50px;
+    }
+
+    .calendar-days {
+        gap: 2px;
+    }
+
+    .calendar-weekdays > div {
+        padding: 2px;
+        font-size: 0.8rem;
+    }
+
+    .day-number {
+        font-size: 0.7rem;
+    }
+
+    .day-indicators {
+        font-size: 0.55rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Анимация заголовка
+    gsap.from('.calendar-title', {
+        duration: 0.5,
+        opacity: 0,
+        y: -20,
+        ease: "power2.out"
+    });
+
+    // Анимация появления ячеек календаря
+    gsap.from('.calendar-day:not(.empty)', {
+        duration: 0.4,
+        opacity: 0,
+        y: 20,
+        stagger: {
+            amount: 0.3,
+            grid: [7, 6],
+            from: "start"
+        },
+        ease: "power2.out"
+    });
+});
+</script>
+{% endblock %}
