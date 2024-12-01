@@ -3,10 +3,10 @@
 {% block content %}
 <div class="container-fluid">
     <!-- Заголовок и кнопка добавления -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Транзакции</h2>
-        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
-            <i class="bi bi-plus-lg me-2"></i>Добавить транзакцию
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
+        <h2 class="mb-3 mb-md-0">Транзакции</h2>
+        <button class="btn btn-dark w-md-auto" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+            <i class="bi bi-plus-lg me-2" style="max-width: 200px;"></i>Добавить транзакцию
         </button>
     </div>
 
@@ -67,40 +67,43 @@
     <!-- Список транзакций -->
     <div class="card">
         <div class="card-body">
+            <!-- Кнопки сортировки для всех устройств -->
+            <div class="mb-3">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-sort-down"></i> Сортировка
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="sortTable(0); return false;">По дате</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortTable(1); return false;">По типу</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortTable(2); return false;">По карте</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortTable(3); return false;">По категории</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortTable(5); return false;">По сумме</a></li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead class="table-light">
+                    <thead class="table-light d-none d-md-table-header-group">
                         <tr>
-                            <th>
-                                <a href="?{% if request.GET.sort == 'date' and not request.GET.desc %}sort=date&desc=1{% else %}sort=date{% endif %}" class="text-dark text-decoration-none">
-                                    Дата
-                                    <i class="bi bi-arrow-{% if request.GET.sort == 'date' and request.GET.desc %}down{% elif request.GET.sort == 'date' or request.GET.sort == None %}up{% else %}down{% endif %}"></i>
-                                </a>
+                            <th style="cursor: pointer;" onclick="sortTable(0)">
+                                Дата <i class="bi bi-arrow-down-up"></i>
                             </th>
-                            <th>
-                                <a href="?{% if request.GET.sort == 'type' and not request.GET.desc %}sort=type&desc=1{% else %}sort=type{% endif %}" class="text-dark text-decoration-none">
-                                    Тип
-                                    <i class="bi bi-arrow-{% if request.GET.sort == 'type' and request.GET.desc %}down{% else %}up{% endif %}"></i>
-                                </a>
+                            <th style="cursor: pointer;" onclick="sortTable(1)">
+                                Тип <i class="bi bi-arrow-down-up"></i>
                             </th>
-                            <th>
-                                <a href="?{% if request.GET.sort == 'card' and not request.GET.desc %}sort=card&desc=1{% else %}sort=card{% endif %}" class="text-dark text-decoration-none">
-                                    Карта
-                                    <i class="bi bi-arrow-{% if request.GET.sort == 'card' and request.GET.desc %}down{% else %}up{% endif %}"></i>
-                                </a>
+                            <th style="cursor: pointer;" onclick="sortTable(2)">
+                                Карта <i class="bi bi-arrow-down-up"></i>
                             </th>
-                            <th>
-                                <a href="?{% if request.GET.sort == 'category' and not request.GET.desc %}sort=category&desc=1{% else %}sort=category{% endif %}" class="text-dark text-decoration-none">
-                                    Категория
-                                    <i class="bi bi-arrow-{% if request.GET.sort == 'category' and request.GET.desc %}down{% else %}up{% endif %}"></i>
-                                </a>
+                            <th style="cursor: pointer;" onclick="sortTable(3)">
+                                Категория <i class="bi bi-arrow-down-up"></i>
                             </th>
-                            <th>Описание</th>
-                            <th>
-                                <a href="?{% if request.GET.sort == 'amount' and not request.GET.desc %}sort=amount&desc=1{% else %}sort=amount{% endif %}" class="text-dark text-decoration-none">
-                                    Сумма
-                                    <i class="bi bi-arrow-{% if request.GET.sort == 'amount' and request.GET.desc %}down{% else %}up{% endif %}"></i>
-                                </a>
+                            <th style="cursor: pointer;" onclick="sortTable(4)">
+                                Описание <i class="bi bi-arrow-down-up"></i>
+                            </th>
+                            <th style="cursor: pointer;" onclick="sortTable(5)">
+                                Сумма <i class="bi bi-arrow-down-up"></i>
                             </th>
                             <th>Действия</th>
                         </tr>
@@ -108,13 +111,72 @@
                     <tbody>
                         {% for transaction in transactions %}
                         <tr>
-                            <td>{{ transaction.date|date:"d.m.Y" }}</td>
-                            <td>
+                            <!-- Мобильная версия -->
+                            <td class="d-md-none">
+                                <div class="d-flex flex-column">
+                                    <div class="mb-2">
+                                        <small class="text-muted">{{ transaction.date|date:"d.m.Y" }}</small>
+                                        <div class="float-end">
+                                            <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editTransactionModal{{ transaction.id }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#deleteTransactionModal{{ transaction.id }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                            {{ transaction.get_type_display }}
+                                        </span>
+                                        <span class="badge" style="background-color: {{ transaction.category.color }}">
+                                            <i class="bi {{ transaction.category.icon }} me-1"></i>
+                                            {{ transaction.category.name }}
+                                        </span>
+                                    </div>
+
+                                    {% if transaction.card %}
+                                    <div class="card-preview-mini d-inline-flex align-items-center p-2 rounded-2 mb-2
+                                        {% if transaction.card.design == 'classic_black' %}bg-dark text-white
+                                        {% elif transaction.card.design == 'classic_white' %}bg-white text-dark border
+                                        {% elif transaction.card.design == 'gold' %}bg-warning text-dark
+                                        {% elif transaction.card.design == 'platinum' %}bg-secondary text-white
+                                        {% elif transaction.card.design == 'metal' %}bg-light text-dark border
+                                        {% else %}bg-white text-dark border{% endif %}">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi {% if transaction.card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} me-2"></i>
+                                            <div>
+                                                <small class="d-block lh-1">{{ transaction.card.name }}</small>
+                                                <small class="d-block text-opacity-75">{{ transaction.card.bank }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if transaction.description %}
+                                    <div class="mb-2">
+                                        <small class="text-muted">{{ transaction.description }}</small>
+                                    </div>
+                                    {% endif %}
+
+                                    <div>
+                                        <span class="{% if transaction.type == 'income' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                            {% if transaction.type == 'income' %}+{% else %}-{% endif %}
+                                            {{ transaction.amount|floatformat:2 }} ₽
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Десктопная версия -->
+                            <td class="d-none d-md-table-cell">{{ transaction.date|date:"d.m.Y" }}</td>
+                            <td class="d-none d-md-table-cell">
                                 <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
                                     {{ transaction.get_type_display }}
                                 </span>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 {% if transaction.card %}
                                 <div class="card-preview-mini d-inline-flex align-items-center p-2 rounded-2 
                                     {% if transaction.card.design == 'classic_black' %}bg-dark text-white
@@ -135,20 +197,20 @@
                                 <span class="text-muted">Карта не указана</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <span class="badge" style="background-color: {{ transaction.category.color }}">
                                     <i class="bi {{ transaction.category.icon }} me-1"></i>
                                     {{ transaction.category.name }}
                                 </span>
                             </td>
-                            <td>{{ transaction.description|default:"-" }}</td>
-                            <td>
+                            <td class="d-none d-md-table-cell">{{ transaction.description|default:"-" }}</td>
+                            <td class="d-none d-md-table-cell">
                                 <span class="{% if transaction.type == 'income' %}text-success{% else %}text-danger{% endif %}">
                                     {% if transaction.type == 'income' %}+{% else %}-{% endif %}
                                     {{ transaction.amount|floatformat:2 }} ₽
                                 </span>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTransactionModal{{ transaction.id }}">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -157,93 +219,6 @@
                                 </button>
                             </td>
                         </tr>
-
-                        <!-- Модальное окно редактирования -->
-                        <div class="modal fade" id="editTransactionModal{{ transaction.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Редактировать транзакцию</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <form method="post" action="{% url 'operations:edit_transaction' transaction.id %}">
-                                        {% csrf_token %}
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label class="form-label">Тип</label>
-                                                <select class="form-select transaction-type" name="type" required>
-                                                    <option value="income" {% if transaction.type == 'income' %}selected{% endif %}>Доход</option>
-                                                    <option value="expense" {% if transaction.type == 'expense' %}selected{% endif %}>Расход</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Категория</label>
-                                                <select class="form-select category-select" name="category" required>
-                                                    {% for category in categories %}
-                                                    <option value="{{ category.id }}" 
-                                                            data-type="{{ category.type }}"
-                                                            {% if category.id == transaction.category.id %}selected{% endif %}>
-                                                        {{ category.name }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Сумма</label>
-                                                <input type="number" class="form-control" name="amount" value="{{ transaction.amount }}" required step="0.01">
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Описание</label>
-                                                <textarea class="form-control" name="description" rows="3">{{ transaction.description }}</textarea>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Дата</label>
-                                                <input type="date" class="form-control" name="date" value="{{ transaction.date|date:'Y-m-d' }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Карта</label>
-                                                <select class="form-select" name="card" required>
-                                                    {% for card in cards %}
-                                                    <option value="{{ card.id }}" {% if transaction.card.id == card.id %}selected{% endif %}>
-                                                        {{ card.name }} ({{ card.bank }}) - {{ card.get_masked_number }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
-                                            <button type="submit" class="btn btn-dark">Сохранить</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Модальное окно удаления -->
-                        <div class="modal fade" id="deleteTransactionModal{{ transaction.id }}" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Удалить транзакцию</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Вы уверены, что хотите удалить эту транзакцию?</p>
-                                        <p class="mb-0"><strong>Дата:</strong> {{ transaction.date|date:"d.m.Y" }}</p>
-                                        <p class="mb-0"><strong>Тип:</strong> {{ transaction.get_type_display }}</p>
-                                        <p class="mb-0"><strong>Сумма:</strong> {{ transaction.amount }} ₽</p>
-                                    </div>
-                                    <form method="post" action="{% url 'operations:delete_transaction' transaction.id %}">
-                                        {% csrf_token %}
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
-                                            <button type="submit" class="btn btn-dark">Удалить</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
                         {% empty %}
                         <tr>
                             <td colspan="7" class="text-center py-4">
@@ -322,21 +297,160 @@
     </div>
 </div>
 
+<!-- Модальные окна для редактирования и удаления -->
+{% for transaction in transactions %}
+<!-- Модальное окно редактирования -->
+<div class="modal fade" id="editTransactionModal{{ transaction.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать транзакцию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'operations:edit_transaction' transaction.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Карта</label>
+                        <select class="form-select" name="card" required>
+                            {% for card in cards %}
+                            <option value="{{ card.id }}" {% if transaction.card.id == card.id %}selected{% endif %}>
+                                {{ card.name }} ({{ card.bank }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <select class="form-select" name="type" id="transactionType{{ transaction.id }}" required>
+                            <option value="income" {% if transaction.type == 'income' %}selected{% endif %}>Доход</option>
+                            <option value="expense" {% if transaction.type == 'expense' %}selected{% endif %}>Расход</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Категория</label>
+                        <select class="form-select" name="category" id="categorySelect{{ transaction.id }}" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    data-type="{{ category.type }}"
+                                    {% if category.id == transaction.category.id %}selected{% endif %}
+                                    {% if category.type != 'both' and category.type != transaction.type %}style="display:none"{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сумма</label>
+                        <input type="number" 
+                               class="form-control" 
+                               name="amount" 
+                               required 
+                               step="0.01" 
+                               value="{{ transaction.amount|stringformat:'.2f'|cut:',' }}"
+                               oninput="if(this.value.indexOf('.') != -1) { this.value = parseFloat(this.value).toFixed(2); } else { this.value = parseFloat(this.value).toFixed(2); }">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" name="description" rows="3">{{ transaction.description }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-control" name="date" required value="{{ transaction.date|date:'Y-m-d' }}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно удаления -->
+<div class="modal fade" id="deleteTransactionModal{{ transaction.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить эту транзакцию?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form method="post" action="{% url 'operations:delete_transaction' transaction.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
 <style>
-    .card-preview-mini {
-        font-size: 0.875rem;
-        min-width: 200px;
-        transition: all 0.2s ease-in-out;
+@media (max-width: 767px) {
+    .btn-dark {
+        width: 100%;
+        margin-top: 1rem;
     }
     
-    .card-preview-mini:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .card-preview-mini {
+        width: 100%;
+        margin-bottom: 0.5rem;
     }
+    
+    .table > :not(caption) > * > * {
+        padding: 1rem;
+    }
+    
+    .badge {
+        font-size: 0.875em;
+    }
+}
 
-    .text-opacity-75 {
-        opacity: 0.75;
-    }
+.card-preview-mini {
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.card-preview-mini:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.text-opacity-75 {
+    opacity: 0.75;
+}
+
+.table th {
+    white-space: nowrap;
+    user-select: none;
+}
+
+.table th i {
+    margin-left: 5px;
+    font-size: 0.8em;
+}
+
+.table th:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+.dropdown-item {
+    cursor: pointer;
+}
+
+.dropdown-item:active {
+    background-color: #6c757d;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
 </style>
 {% endblock %}
 
@@ -386,6 +500,149 @@ document.addEventListener('DOMContentLoaded', function() {
         transactionType.addEventListener('change', updateCategories);
         updateCategories();
     }
+
+    // Обработчик изменения типа транзакции для каждой формы редактирования
+    {% for transaction in transactions %}
+    const transactionType{{ transaction.id }} = document.getElementById('transactionType{{ transaction.id }}');
+    const categorySelect{{ transaction.id }} = document.getElementById('categorySelect{{ transaction.id }}');
+    
+    if (transactionType{{ transaction.id }} && categorySelect{{ transaction.id }}) {
+        transactionType{{ transaction.id }}.addEventListener('change', function() {
+            const selectedType = this.value;
+            const options = categorySelect{{ transaction.id }}.options;
+            
+            for (let option of options) {
+                const categoryType = option.dataset.type;
+                if (categoryType === 'both' || categoryType === selectedType) {
+                    option.style.display = '';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+            
+            // Выбираем первую видимую опцию
+            for (let option of options) {
+                if (option.style.display !== 'none') {
+                    categorySelect{{ transaction.id }}.value = option.value;
+                    break;
+                }
+            }
+        });
+    }
+    {% endfor %}
+
+    // Инициализация всех модальных окон
+    var modals = document.querySelectorAll('.modal');
+    modals.forEach(function(modal) {
+        new bootstrap.Modal(modal);
+    });
 });
+
+function sortTable(n) {
+    var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    table = document.querySelector('.table');
+    switching = true;
+    dir = "asc";
+    
+    while (switching) {
+        switching = false;
+        rows = table.getElementsByTagName("TR");
+        
+        for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            
+            // Получаем все ячейки строки (включая мобильные и десктопные)
+            let cells1 = rows[i].getElementsByTagName("TD");
+            let cells2 = rows[i + 1].getElementsByTagName("TD");
+            
+            // Для мобильной версии берем первую ячейку и ищем нужные данные внутри
+            if (window.innerWidth < 768) {
+                x = cells1[0];
+                y = cells2[0];
+                
+                // Извлекаем нужные данные в зависимости от типа сортировки
+                switch(n) {
+                    case 0: // Дата
+                        xValue = x.querySelector('small.text-muted').textContent.trim();
+                        yValue = y.querySelector('small.text-muted').textContent.trim();
+                        xValue = new Date(xValue.split('.').reverse().join('-'));
+                        yValue = new Date(yValue.split('.').reverse().join('-'));
+                        break;
+                    case 1: // Тип
+                        xValue = x.querySelector('.badge').textContent.trim();
+                        yValue = y.querySelector('.badge').textContent.trim();
+                        break;
+                    case 2: // Карта
+                        let xCard = x.querySelector('.card-preview-mini');
+                        let yCard = y.querySelector('.card-preview-mini');
+                        xValue = xCard ? xCard.textContent.trim() : '';
+                        yValue = yCard ? yCard.textContent.trim() : '';
+                        break;
+                    case 3: // Категория
+                        xValue = x.querySelectorAll('.badge')[1].textContent.trim();
+                        yValue = y.querySelectorAll('.badge')[1].textContent.trim();
+                        break;
+                    case 5: // Сумма
+                        xValue = parseFloat(x.querySelector('.fw-bold').textContent.replace(/[^0-9.-]+/g,""));
+                        yValue = parseFloat(y.querySelector('.fw-bold').textContent.replace(/[^0-9.-]+/g,""));
+                        break;
+                }
+            } else {
+                // Десктопная версия - берем соответствующие ячейки
+                x = cells1[n];
+                y = cells2[n];
+                xValue = x.textContent.trim();
+                yValue = y.textContent.trim();
+                
+                // Особая обработка для даты и суммы в десктопной версии
+                if (n === 0) {
+                    xValue = new Date(xValue.split('.').reverse().join('-'));
+                    yValue = new Date(yValue.split('.').reverse().join('-'));
+                } else if (n === 5) {
+                    xValue = parseFloat(xValue.replace(/[^0-9.-]+/g,""));
+                    yValue = parseFloat(yValue.replace(/[^0-9.-]+/g,""));
+                }
+            }
+            
+            if (dir == "asc") {
+                if (xValue > yValue) {
+                    shouldSwitch = true;
+                    break;
+                }
+            } else if (dir == "desc") {
+                if (xValue < yValue) {
+                    shouldSwitch = true;
+                    break;
+                }
+            }
+        }
+        
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+            switchcount++;
+        } else {
+            if (switchcount == 0 && dir == "asc") {
+                dir = "desc";
+                switching = true;
+            }
+        }
+    }
+    
+    // Обновляем иконки в выпадающем меню
+    let dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach((item, index) => {
+        let icon = item.querySelector('i:not(.bi-sort-down)'); // Исключаем основную иконку сортировки
+        if (icon) {
+            icon.remove();
+        }
+        if (index === n) {
+            let newIcon = document.createElement('i');
+            newIcon.className = dir === "asc" ? 
+                "bi bi-arrow-up ms-2" : "bi bi-arrow-down ms-2";
+            item.appendChild(newIcon);
+        }
+    });
+}
 </script>
 {% endblock %}

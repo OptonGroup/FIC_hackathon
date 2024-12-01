@@ -132,6 +132,26 @@
         .card:hover {
             transform: translateY(-5px);
         }
+
+        @media (max-width: 767px) {
+            .transaction-row {
+                border-bottom: 1px solid #dee2e6;
+            }
+            
+            .transaction-row:last-child {
+                border-bottom: none;
+            }
+            
+            .table > :not(caption) > * > * {
+                padding: 1rem;
+            }
+        }
+
+        .badge {
+            padding: 0.5em 0.8em;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -279,21 +299,71 @@
                             <h5 class="card-title">Последние транзакции</h5>
                             <div class="table-responsive">
                                 <table class="table">
-                                    <thead>
+                                    <thead class="d-none d-md-table-header-group">
                                         <tr>
                                             <th>Дата</th>
                                             <th>Тип</th>
                                             <th>Сумма</th>
                                             <th>Категория</th>
+                                            <th>Карта</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for transaction in recent_transactions %}
-                                        <tr>
-                                            <td>{{ transaction.date }}</td>
-                                            <td>{{ transaction.get_type_display }}</td>
-                                            <td>{{ transaction.amount }} ₽</td>
-                                            <td>{{ transaction.category }}</td>
+                                        <tr class="transaction-row">
+                                            <!-- Мобильная версия -->
+                                            <td class="d-md-none">
+                                                <div class="d-flex flex-column">
+                                                    <div class="mb-1">
+                                                        <small class="text-muted">{{ transaction.date }}</small>
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %} me-2">
+                                                            {{ transaction.get_type_display }}
+                                                        </span>
+                                                        {{ transaction.category }}
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <strong>{{ transaction.amount }} ₽</strong>
+                                                    </div>
+                                                    <div>
+                                                        {% if transaction.card %}
+                                                            <span class="badge" style="background-color: {{ transaction.card.design_color }}">
+                                                                <i class="bi bi-credit-card-2-front me-1"></i>
+                                                                {{ transaction.card.name }}
+                                                            </span>
+                                                        {% else %}
+                                                            <small class="text-muted">
+                                                                <i class="bi bi-credit-card-2-front me-1"></i>
+                                                                Карта не указана
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            
+                                            <!-- Десктопная версия -->
+                                            <td class="d-none d-md-table-cell">{{ transaction.date }}</td>
+                                            <td class="d-none d-md-table-cell">
+                                                <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                                    {{ transaction.get_type_display }}
+                                                </span>
+                                            </td>
+                                            <td class="d-none d-md-table-cell">{{ transaction.amount }} ₽</td>
+                                            <td class="d-none d-md-table-cell">{{ transaction.category }}</td>
+                                            <td class="d-none d-md-table-cell">
+                                                {% if transaction.card %}
+                                                    <span class="badge" style="background-color: {{ transaction.card.design_color }}">
+                                                        <i class="bi bi-credit-card-2-front me-1"></i>
+                                                        {{ transaction.card.name }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">
+                                                        <i class="bi bi-credit-card-2-front me-1"></i>
+                                                        Карта не указана
+                                                    </span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

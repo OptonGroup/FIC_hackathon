@@ -175,6 +175,20 @@ def dashboard(request):
 
     currency_rates = get_currency_rates()
 
+    # Словарь с цветами для разных дизайнов карт
+    CARD_DESIGN_COLORS = {
+        'classic_black': '#212529',  # Черный
+        'classic_white': '#f8f9fa',  # Белый
+        'gold': '#ffd700',          # Золотой
+        'platinum': '#e5e4e2',      # Платиновый
+        'metal': '#71797E',         # Металлик
+    }
+    
+    # Добавляем цвета для карт
+    for transaction in recent_transactions:
+        if transaction.card:
+            transaction.card.design_color = CARD_DESIGN_COLORS.get(transaction.card.design, '#6c757d')
+
     context = {
         'total_balance': total_balance,
         'monthly_expenses': monthly_expenses,
