@@ -88,6 +88,35 @@
         .toggle-sidebar.moved {
             left: 0;
         }
+
+        .logout-nav {
+            padding: 8px 12px;
+            margin-top: 10px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #dc3545;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            width: 100%;
+            
+        }
+
+        .logout-nav:hover {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #ff6b6b;
+            transform: translateX(3px);
+        }
+
+        .bi-box-arrow-right {
+            font-size: 1.2em;
+            transition: transform 0.2s ease;
+        }
+
+        .logout-nav:hover .bi-box-arrow-right {
+            transform: translateX(2px);
+        }
     </style>
 </head>
 <body>
@@ -118,52 +147,63 @@
 
     <!-- Боковая панель -->
     <div class="sidebar" id="sidebar" style="margin-right: 5rem;">
-        <div class="profile-section">
-            <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
-                {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                {% else %}
-                    <img src="/media/avatars/default.png" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                {% endif %}
-                <div>
-                    <h6 class="mb-0">{{ user.username }}</h6>
-                    <small class="text-secondary">Перейти в профиль</small>
+        <div class="sidebar-content">
+            <div class="profile-section">
+                <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                        <img src="/media/avatars/default.png" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% endif %}
+                    <div>
+                        <h6 class="mb-0">{{ user.username }}</h6>
+                        <small class="text-secondary">Перейти в профиль</small>
+                    </div>
                 </div>
             </div>
+
+            <ul class="nav flex-column mt-3">
+                <li class="nav-item">
+                    <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="bi bi-house-door"></i> Главная
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+                        <i class="bi bi-credit-card"></i> Транзакции
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
+                        <i class="bi bi-piggy-bank"></i> Цели
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
+                        <i class="bi bi-cash-coin"></i> Кредиты
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
+                        <i class="bi bi-arrow-repeat"></i> Регулярные платежи
+                    </a>
+                </li>
+                <li class="nav-item"></li>
+                    <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
+                        <i class="bi bi-credit-card-2-front"></i> Мои карты
+                    </a>
+                </li>
+                <div class="nav-divider"></div>
+            </ul>
         </div>
 
-        <ul class="nav flex-column mt-3">
-            <li class="nav-item">
-                <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-house-door"></i> Главная
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
-                    <i class="bi bi-credit-card"></i> Транзакции
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
-                    <i class="bi bi-piggy-bank"></i> Цели
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
-                    <i class="bi bi-cash-coin"></i> Кредиты
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
-                    <i class="bi bi-arrow-repeat"></i> Регулярные платежи
-                </a>
-            </li>
-            <li class="nav-item"></li>
-                <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
-                    <i class="bi bi-credit-card-2-front"></i> Мои карты
-                </a>
-            </li>
-        </ul>
+        <div class="sidebar-footer">
+            <div class="nav-divider"></div>
+            <a href="{% url 'accounts:logout' %}" class="nav-item logout-nav d-flex align-items-center">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Выход</span>
+            </a>
+        </div>
     </div>
 
     <!-- Кнопка переключения боковой панели -->
