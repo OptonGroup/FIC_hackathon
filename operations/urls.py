@@ -9,6 +9,7 @@ urlpatterns = [
     path('transactions/add/', views.add_transaction, name='add_transaction'),
     path('transactions/<int:transaction_id>/edit/', views.edit_transaction, name='edit_transaction'),
     path('transactions/<int:transaction_id>/delete/', views.delete_transaction, name='delete_transaction'),
+    path('export_transactions/<str:file_format>/', views.export_transactions, name='export_transactions'),
     path('targets/', views.targets, name='targets'),
     path('targets/add/', views.add_target, name='add_target'),
     path('targets/<int:target_id>/edit/', views.edit_target, name='edit_target'),

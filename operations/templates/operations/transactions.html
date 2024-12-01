@@ -73,6 +73,37 @@
                     <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-sort-down"></i> Сортировка
                     </button>
+                    <!-- Кнопка выгрузки CSV -->
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-download me-2"></i>Выгрузить
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form method="get" action="{% url 'operations:export_transactions' 'csv' %}" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV
+                                    </button>
+                                </form>
+                            </li>
+                            <li>
+                                <form method="get" action="{% url 'operations:export_transactions' 'excel' %}" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-file-earmark-excel me-2"></i>Excel
+                                    </button>
+                                </form>
+                            </li>
+                            <li>
+                                <form method="get" action="{% url 'operations:export_transactions' 'json' %}" class="d-inline">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi bi-file-earmark-spreadsheet me-2"></i>JSON
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                    
+
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="#" onclick="sortTable(0); return false;">По дате</a></li>
                         <li><a class="dropdown-item" href="#" onclick="sortTable(1); return false;">По типу</a></li>
