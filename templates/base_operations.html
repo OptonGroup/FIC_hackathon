@@ -126,6 +126,84 @@
             closeBtn.addEventListener('click', function() {
                 popup.classList.add('hidden');
             });
+
+            // Функция для получения информации об аккаунте
+            async function getAccountInfo() {
+                try {
+                    // Проверяем наличие информации
+                    const hasBalance = Boolean('{{ user.profile.balance }}');
+                    const hasCredits = Boolean('{% if user.credits.all %}true{% endif %}');
+                    const hasTargets = Boolean('{% if user.targets.all %}true{% endif %}');
+                    const hasRegularPayments = Boolean('{% if user.regular_payments.all %}true{% endif %}');
+                    
+                    // Если информации недостаточно
+                    if (!hasBalance && !hasCredits && !hasTargets && !hasRegularPayments) {
+                        addMessage(`
+                            Похоже, у вас пока недостаточно информации для полноценного финансового анализа. 
+                            Для получения персонализированных рекомендаций, пожалуйста:
+                            
+                            1. Добавьте информацию о вашем текущем балансе в профиле
+                            2. Укажите ваши финансовые цели в разделе "Цели"
+                            3. Добавьте информацию о регулярных платежах
+                            4. Если есть кредиты, внесите их в соответствующий раздел
+                            
+                            После добавления информации я смогу предложить эффективную стратегию накопления, учитывающую вашу конкретную ситуацию.
+                        `);
+                        return;
+                    }
+
+                    const message = `
+                        Проанализируйте мою финансовую ситуацию и предложите стратегию накопления:
+                        
+                        ${hasBalance ? `Текущий баланс: {{ user.profile.balance }} руб.` : ''}
+                        
+                        ${hasCredits ? `
+                        Кредиты:
+                        {% for credit in user.credits.all %}
+                        - {{ credit.name }}: {{ credit.amount }} руб. (Ставка: {{ credit.interest_rate }}%)
+                        {% endfor %}
+                        ` : ''}
+                        
+                        ${hasTargets ? `
+                        Финансовые цели:
+                        {% for target in user.targets.all %}
+                        - {{ target.name }}: {{ target.target_amount }} руб. (Накоплено: {{ target.current_amount }} руб.)
+                        {% endfor %}
+                        ` : ''}
+                        
+                        ${hasRegularPayments ? `
+                        Регулярные платежи:
+                        {% for payment in user.regular_payments.all %}
+                        - {{ payment.name }}: {{ payment.amount }} руб. ({{ payment.frequency }})
+                        {% endfor %}
+                        ` : ''}
+                        
+                        ${!hasBalance ? 'Информация о текущем балансе отсутствует.' : ''}
+                        ${!hasCredits ? 'Информация о кредитах отсутствует.' : ''}
+                        ${!hasTargets ? 'Информация о финансовых целях отсутствует.' : ''}
+                        ${!hasRegularPayments ? 'Информация о регулярных платежах отсутствует.' : ''}
+                        
+                        Пожалуйста, предложите эффективную стратегию накопления с учетом имеющейся информации о финансовом положении.
+                    `;
+                    
+                    addLoadingMessage();
+                    const response = await fetch(`https://geminiapific.pythonanywhere.com/generate_content?prompt=${encodeURIComponent(message)}`);
+                    const data = await response.json();
+                    removeLoadingMessage();
+                    addMessage(data.text);
+                } catch (error) {
+                    removeLoadingMessage();
+                    addMessage('Извините, произошла ошибка при анализе вашей финансовой ситуации.');
+                    console.error('Error:', error);
+                }
+            }
+
+            // Обновляем начальное сообщение и запускаем анализ
+            const initialMessage = document.querySelector('.ai-message .message-content');
+            initialMessage.innerHTML = 'Здравствуйте! Я ваш AI-ассистент по финансам. Сейчас я проанализирую вашу финансовую ситуацию и предложу стратегию накопления...';
+            
+            // Запускаем анализ после загрузки страницы
+            getAccountInfo();
         });
     </script>
 
