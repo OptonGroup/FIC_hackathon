@@ -689,21 +689,28 @@ def cards(request):
 
 
 def get_bank_by_card_number(card_number):
-    bin_number = card_number[:6]
-    url = f"https://lookup.binlist.net/{bin_number}"
-    response = requests.get(url)
-    response.raise_for_status()
-    bank_info = response.json()
-    bank_name = bank_info.get('bank', {}).get('name', 'Неизвестно')
-    bank_country = bank_info.get('country', {}).get('name', 'Неизвестно')
-    card_type = bank_info.get('type', 'Неизвестно')
-    print(card_type)
+    try:
+        bin_number = card_number[:6]
+        url = f"https://lookup.binlist.net/{bin_number}"
+        response = requests.get(url)
+        response.raise_for_status()
+        bank_info = response.json()
+        bank_name = bank_info.get('bank', {}).get('name', 'Неизвестно')
+        bank_country = bank_info.get('country', {}).get('name', 'Неизвестно')
+        card_type = bank_info.get('type', 'Неизвестно')
+        print(card_type)
 
-    return {
-        'bank_name': bank_name,
-        'bank_country': bank_country,
-        'card_type': card_type
-    }
+        return {
+            'bank_name': bank_name,
+            'bank_country': bank_country,
+            'card_type': card_type
+        }
+    except BaseException:
+        return {
+            'bank_name': "Неизвестно",
+            'bank_country': "Неизвестно",
+            'card_type': "debit"
+        }
 
 @login_required
 def add_card(request):
@@ -746,13 +753,13 @@ def edit_card(request, card_id):
         card = get_object_or_404(Card, id=card_id, user=request.user)
         try:
             card_number = request.POST.get('card_number').replace(' ', '')
-            card_info = get_bank_by_card_number(card_number)
+            # card_info = get_bank_by_card_number(card_number)
             card.name = request.POST.get('name')
             card.card_number = card_number
-            # card.bank = request.POST.get('bank')
-            # card.card_type = request.POST.get('card_type')
-            card.bank = card_info['bank_name']
-            card.card_type = card_info['card_type']
+            card.bank = request.POST.get('bank')
+            card.card_type = request.POST.get('card_type')
+            # card.bank = card_info['bank_name']
+            # card.card_type = card_info['card_type']
             card.design = request.POST.get('design')
             card.balance = request.POST.get('balance')
             card.save()

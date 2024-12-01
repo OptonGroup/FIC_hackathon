@@ -195,22 +195,29 @@
             </div>
             <div class="currency-rates">
                 <div class="currency-ticker">
-                    <span class="currency-item" data-currency="USD">
-                        <i class="bi bi-currency-dollar"></i>
-                        {{ currency_rates.USD|floatformat:2 }} ₽
-                    </span>
-                    <span class="currency-item" data-currency="EUR">
-                        <i class="bi bi-currency-euro"></i>
-                        {{ currency_rates.EUR|floatformat:2 }} ₽
-                    </span>
-                    <span class="currency-item" data-currency="CNY">
-                        <i class="bi bi-currency-yen"></i>
-                        {{ currency_rates.CNY|floatformat:2 }} ₽
-                    </span>
-                    <span class="currency-item" data-currency="BTC">
-                        <i class="bi bi-currency-bitcoin"></i>
-                        {{ currency_rates.BTC|floatformat:0|intcomma }} ₽
-                    </span>
+                    {% if currency_rates %}
+                        <span class="currency-item" data-currency="USD">
+                            <i class="bi bi-currency-dollar"></i>
+                            {{ currency_rates.USD|floatformat:2 }} ₽
+                        </span>
+                        <span class="currency-item" data-currency="EUR">
+                            <i class="bi bi-currency-euro"></i>
+                            {{ currency_rates.EUR|floatformat:2 }} ₽
+                        </span>
+                        <span class="currency-item" data-currency="CNY">
+                            <i class="bi bi-currency-yen"></i>
+                            {{ currency_rates.CNY|floatformat:2 }} ₽
+                        </span>
+                        <span class="currency-item" data-currency="BTC">
+                            <i class="bi bi-currency-bitcoin"></i>
+                            {{ currency_rates.BTC|floatformat:0|intcomma }} ₽
+                        </span>
+                    {% else %}
+                        <span class="currency-item">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Курсы валют временно недоступны
+                        </span>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -233,19 +240,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function updateCurrencyRates() {
-            fetch('/api/currency-rates/')  // Нужно создать этот endpoint
+            fetch('/operations/api/currency-rates/')
                 .then(response => response.json())
                 .then(data => {
-                    document.querySelectorAll('.currency-item').forEach(item => {
-                        const currency = item.dataset.currency;
-                        if (data[currency]) {
-                            item.querySelector('.rate').textContent = 
-                                Number(data[currency]).toLocaleString('ru-RU', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }) + ' ₽';
-                        }
-                    });
+                    if (data) {
+                        document.querySelectorAll('.currency-item').forEach(item => {
+                            const currency = item.dataset.currency;
+                            if (currency && data[currency]) {
+                                const value = currency === 'BTC' 
+                                    ? Number(data[currency]).toLocaleString('ru-RU')
+                                    : Number(data[currency]).toFixed(2);
+                                item.innerHTML = `
+                                    <i class="bi bi-currency-${currency.toLowerCase()}"></i>
+                                    ${value} ₽
+                                `;
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при обновлении курсов валют:', error);
                 });
         }
 
