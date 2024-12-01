@@ -208,9 +208,8 @@
                 <button class="minimize-btn" id="minimizeAI">_</button>
             </div>
         </div>
-        <div class="ai-assistant-content">
+        <div class="ai-assistant-content" style="max-height: 400px;">
             <div class="ai-messages" id="aiMessages">
-                <!-- Сообщения будут добавляться здесь динамически -->
                 <div class="ai-message">
                     <i class="bi bi-robot"></i>
                     <div class="message-content">
@@ -234,12 +233,10 @@
             const aiMessages = document.getElementById('aiMessages');
             
             function addMessage(message, isUser = false) {
-                // Обрабываем markdown только для сообщений от AI
                 const messageContent = isUser ? message : marked.parse(message);
                 
                 const messageHTML = `
                     <div class="ai-message ${isUser ? 'user' : ''}">
-                // Обрабаываем markdown только для сообщений от AI
                         <div class="message-content markdown-content">
                             ${messageContent}
                         </div>
