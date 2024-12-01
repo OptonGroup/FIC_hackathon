@@ -2,46 +2,60 @@
 
 {% block title %}FinVision - Главная{% endblock %}
 
-{% block extra_head %}
+{% block head %}
+{% endblock %}
+
+{% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     body {
-        background: #121212 !important;
-        color: #ffffff !important;
+        background: #121212;
+        color: #ffffff;
     }
 
     .container {
-        color: #ffffff !important;
+        color: #ffffff;
     }
 
     .hero-section {
-        background: linear-gradient(45deg, #1a1a1a, #2c2c2c) !important;
-        border: 1px solid #333 !important;
-        color: #ffffff !important;
+        background: linear-gradient(45deg, #1a1a1a, #2c2c2c);
+        border: 1px solid #333;
+        color: #ffffff;
+        padding: 2rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
     }
 
     .feature-card, .advantage-card, .testimonial-card {
-        background: #1e1e1e !important;
-        border: 1px solid #333 !important;
-        color: #ffffff !important;
+        background: #1e1e1e;
+        border: 1px solid #333;
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        height: 100%;
     }
 
     .feature-card i, .advantage-card i {
-        font-size: 2.5rem !important;
-        color: #808080 !important;
-        margin-bottom: 1rem !important;
+        font-size: 2.5rem;
+        color: #808080;
+        margin-bottom: 1rem;
+        display: block;
     }
 
     .stat-card {
-        background: linear-gradient(45deg, #1a1a1a, #2c2c2c) !important;
-        border: 1px solid #333 !important;
-        color: #ffffff !important;
+        background: linear-gradient(45deg, #1a1a1a, #2c2c2c);
+        border: 1px solid #333;
+        color: #ffffff;
+        padding: 1.5rem;
+        border-radius: 8px;
+        height: 100%;
     }
 
     .testimonial-card {
-        position: relative !important;
-        padding-top: 3rem !important;
-        background: #1e1e1e !important;
+        position: relative;
+        padding-top: 3rem;
+        background: #1e1e1e;
+        margin-top: 2rem;
     }
 
     .testimonial-img {
@@ -61,50 +75,59 @@
     }
 
     h1, h2, h3, h4, h5, h6 {
-        color: #ffffff !important;
+        color: #ffffff;
     }
 
     .btn-custom {
-        background: #404040 !important;
-        color: white !important;
-        border: none !important;
+        background: #404040;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
     }
 
     .btn-custom:hover {
-        background: #505050 !important;
-        color: white !important;
+        background: #505050;
+        color: white;
     }
 
     .btn-custom-outline {
-        background: transparent !important;
-        color: white !important;
-        border: 2px solid white !important;
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+        padding: 0.5rem 1.5rem;
     }
 
     .btn-custom-outline:hover {
-        background: white !important;
-        color: #121212 !important;
+        background: white;
+        color: #121212;
     }
 
     .quote-icon {
-        color: #404040 !important;
+        color: #404040;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        display: block;
     }
 
     p {
-        color: #e0e0e0 !important;
+        color: #e0e0e0;
+        margin-bottom: 1rem;
     }
 
     .display-4, .lead, .h4, .h6 {
-        color: #ffffff !important;
+        color: #ffffff;
     }
 
     small {
-        color: #b0b0b0 !important;
+        color: #b0b0b0;
+    }
+
+    .advantages-section,
+    .stats-section,
+    .testimonials-section {
+        padding: 4rem 0;
     }
 </style>
-{% endblock %}
-
-{% block content %}
 <div class="container mt-5">
     <div class="hero-section" id="heroSection">
         <h1 class="display-4 fw-bold">Добро пожаловать в FinVision!</h1>
@@ -115,7 +138,7 @@
             <a class="btn btn-custom me-3" href="{% url 'accounts:login' %}">Войти</a>
             <a class="btn btn-custom-outline" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
         {% else %}
-            <a class="btn btn-custom" href="{% url 'operations:dashboard' %}">Перейти к dashboard</a>
+            <a class="btn btn-custom-outline" href="{% url 'operations:dashboard' %}">Перейти к dashboard</a>
         {% endif %}
     </div>
 
@@ -281,4 +304,4 @@
         });
     });
 </script>
-{% endblock %} 
+{% endblock %}
