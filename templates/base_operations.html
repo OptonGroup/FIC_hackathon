@@ -517,7 +517,12 @@
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
-                    <i class="bi bi-credit-card"></i> Транзакции
+                    <i class="bi bi-arrow-left-right"></i> Транзакции
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:calendar' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i> Календарь
                 </a>
             </li>
             <li class="nav-item">
@@ -538,11 +543,6 @@
             <li class="nav-item">
                 <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
                     <i class="bi bi-credit-card-2-front"></i> Мои карты
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'operations:calendar' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
-                    <i class="bi bi-calendar3"></i> Календарь
                 </a>
             </li>
         </ul>
