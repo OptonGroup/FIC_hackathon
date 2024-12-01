@@ -296,27 +296,76 @@
                 </div>
 
                 <!-- Правая колонка -->
+                
+
+                <!-- Правая колонка -->
                 <div class="col-lg-4">
-                    <!-- Кредиты и цели -->
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-6 col-lg-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">Активные кредиты</h6>
-                                    <h3 class="card-title">{{ active_credits.count }}</h3>
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title mb-4">Курсы валют</h5>
+                            <div class="currency-rates">
+                                <div class="rate-item d-flex align-items-center mb-3">
+                                    <div class="currency-icon me-3">
+                                        <i class="bi bi-currency-dollar fs-3"></i>
+                                    </div>
+                                    <div class="rate-info flex-grow-1">
+                                        <div class="small text-muted">Доллар США</div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="fw-bold">{{ currency_rates.USD }} ₽</div>
+                                            <div style="width: 80px; height: 30px;">
+                                                <canvas id="usdChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-12">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h6 class="card-subtitle mb-2 text-muted">Активные цели</h6>
-                                    <h3 class="card-title">{{ active_targets.count }}</h3>
+                                
+                                <div class="rate-item d-flex align-items-center mb-3">
+                                    <div class="currency-icon me-3">
+                                        <i class="bi bi-currency-euro fs-3"></i>
+                                    </div>
+                                    <div class="rate-info flex-grow-1">
+                                        <div class="small text-muted">Евро</div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="fw-bold">{{ currency_rates.EUR }} ₽</div>
+                                            <div style="width: 80px; height: 30px;">
+                                                <canvas id="eurChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="rate-item d-flex align-items-center mb-3">
+                                    <div class="currency-icon me-3">
+                                        <i class="bi bi-currency-yen fs-3"></i>
+                                    </div>
+                                    <div class="rate-info flex-grow-1">
+                                        <div class="small text-muted">Юань</div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="fw-bold">{{ currency_rates.CNY }} ₽</div>
+                                            <div style="width: 80px; height: 30px;">
+                                                <canvas id="cnyChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="rate-item d-flex align-items-center">
+                                    <div class="currency-icon me-3">
+                                        <i class="bi bi-currency-bitcoin fs-3"></i>
+                                    </div>
+                                    <div class="rate-info flex-grow-1">
+                                        <div class="small text-muted">Bitcoin</div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="fw-bold">{{ currency_rates.BTC }} ₽</div>
+                                            <div style="width: 80px; height: 30px;">
+                                                <canvas id="btcChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                     <!-- Ближайшие платежи -->
                     <div class="card">
                         <div class="card-body">
@@ -337,6 +386,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.getElementById('toggleSidebar').addEventListener('click', function() {
             document.getElementById('sidebar').classList.toggle('collapsed');
@@ -506,6 +556,48 @@
                 cutout: '60%'
             }
         });
+
+
+        // Функция для создания мини-графика
+        function createMiniChart(elementId, data, color) {
+            new Chart(document.getElementById(elementId), {
+                type: 'line',
+                data: {
+                    labels: ['', '', '', '', '', ''],
+                    datasets: [{
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        // Создаем графики с случайными данными
+        document.addEventListener('DOMContentLoaded', function() {
+            createMiniChart('usdChart', [95, 94, 96, 95, 97, 96], '#0d6efd');
+            createMiniChart('eurChart', [103, 102, 104, 103, 105, 104], '#dc3545');
+            createMiniChart('cnyChart', [13.2, 13.3, 13.4, 13.3, 13.5, 13.4], '#198754');
+            createMiniChart('btcChart', [4200000, 4250000, 4300000, 4280000, 4350000, 4325000], '#ffc107');
+        });
+
+        // Остальные ваши графики (balanceChart, expensesChart, categoryChart)
+        // ... существующий код ...
     </script>
 </body>
 </html>
