@@ -3,6 +3,50 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import date
 
+
+
+
+
+
+class Card(models.Model):
+    CARD_TYPES = [
+        ('debit', 'Дебетовая'),
+        ('credit', 'Кредитная'),
+    ]
+    
+    CARD_DESIGNS = [
+        ('classic_black', 'Классическая черная'),
+        ('classic_white', 'Классическая белая'),
+        ('gold', 'Золотая'),
+        ('platinum', 'Платиновая'),
+        ('metal', 'Металлическая'),
+        # Можно добавить больше вариантов дизайна
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    name = models.CharField(max_length=100, verbose_name='Название карты')
+    card_number = models.CharField(max_length=19, verbose_name='Номер карты')  # Формат: XXXX XXXX XXXX XXXX
+    bank = models.CharField(max_length=100, verbose_name='Банк')
+    card_type = models.CharField(max_length=10, choices=CARD_TYPES, verbose_name='Тип карты')
+    design = models.CharField(max_length=20, choices=CARD_DESIGNS, default='classic_black', verbose_name='Дизайн карты')
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Баланс')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    
+    class Meta:
+        verbose_name = 'Карта'
+        verbose_name_plural = 'Карты'
+        ordering = ['-created_at']
+        
+    def __str__(self):
+        return f"{self.name} ({self.bank})"
+    
+    def get_masked_number(self):
+        """Возвращает маскированный номер карты (например: **** **** **** 1234)"""
+        if len(self.card_number) >= 4:
+            return f"**** **** **** {self.card_number[-4:]}"
+        return self.card_number
+
+
 class Credit(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     name = models.CharField(max_length=100, verbose_name='Название')
@@ -166,6 +210,13 @@ class Transaction(models.Model):
     date = models.DateField(verbose_name='Дата')
     credit = models.ForeignKey(Credit, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Кредит')
     target = models.ForeignKey(Target, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Цель')
+    card = models.ForeignKey(
+        Card, 
+        on_delete=models.PROTECT,  # Защищаем от удаления карты с транзакциями
+        verbose_name='Карта',
+        null=True,
+        blank=True
+    )
     
     class Meta:
         verbose_name = 'Транзакция'
@@ -196,3 +247,4 @@ class RegularPayment(models.Model):
         
     def __str__(self):
         return self.name
+

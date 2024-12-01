@@ -1,0 +1,200 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Мои карты</h2>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addCardModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить карту
+        </button>
+    </div>
+
+    <!-- Список карт -->
+    <div class="row g-4">
+        {% for card in cards %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <!-- Визуализация карты -->
+                    <div class="card-preview mb-3 p-4 rounded-3 {% if card.design == 'classic_black' %}bg-dark text-white{% elif card.design == 'gold' %}bg-warning{% elif card.design == 'platinum' %}bg-secondary text-white{% elif card.design == 'metal' %}bg-light{% else %}bg-white{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <h5 class="mb-1">{{ card.name }}</h5>
+                                <small>{{ card.bank }}</small>
+                            </div>
+                            <i class="bi {% if card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} fs-3"></i>
+                        </div>
+                        <div class="mb-3">
+                            <div class="fs-5">{{ card.get_masked_number }}</div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="d-block">Баланс</small>
+                                <strong>{{ card.balance }} ₽</strong>
+                            </div>
+                            <span class="badge {% if card.card_type == 'credit' %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ card.get_card_type_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки управления -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editCardModal{{ card.id }}">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#deleteCardModal{{ card.id }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div class="modal fade" id="editCardModal{{ card.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактировать карту</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'operations:edit_card' card.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Название карты</label>
+                                <input type="text" class="form-control" name="name" value="{{ card.name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Номер карты</label>
+                                <input type="text" class="form-control" name="card_number" value="{{ card.card_number }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Банк</label>
+                                <input type="text" class="form-control" name="bank" value="{{ card.bank }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Тип карты</label>
+                                <select class="form-select" name="card_type" required>
+                                    {% for type_code, type_name in card_types %}
+                                    <option value="{{ type_code }}" {% if card.card_type == type_code %}selected{% endif %}>
+                                        {{ type_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Дизайн карты</label>
+                                <select class="form-select" name="design" required>
+                                    {% for design_code, design_name in card_designs %}
+                                    <option value="{{ design_code }}" {% if card.design == design_code %}selected{% endif %}>
+                                        {{ design_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Баланс</label>
+                                <input type="number" class="form-control" name="balance" value="{{ card.balance }}" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div class="modal fade" id="deleteCardModal{{ card.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удалить карту</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить эту карту?</p>
+                        <p class="mb-0"><strong>Название:</strong> {{ card.name }}</p>
+                        <p class="mb-0"><strong>Банк:</strong> {{ card.bank }}</p>
+                        <p class="mb-0"><strong>Номер:</strong> {{ card.get_masked_number }}</p>
+                    </div>
+                    <form method="post" action="{% url 'operations:delete_card' card.id %}">
+                        {% csrf_token %}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-credit-card display-1 text-secondary mb-3"></i>
+                <h4>У вас пока нет добавленных карт</h4>
+                <p class="text-muted">Нажмите кнопку "Добавить карту" чтобы начать</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Модальное окно добавления карты -->
+<div class="modal fade" id="addCardModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить карту</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'operations:add_card' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Название карты</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Номер карты</label>
+                        <input type="text" class="form-control" name="card_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Банк</label>
+                        <input type="text" class="form-control" name="bank" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Тип карты</label>
+                        <select class="form-select" name="card_type" required>
+                            {% for type_code, type_name in card_types %}
+                            <option value="{{ type_code }}">{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дизайн карты</label>
+                        <select class="form-select" name="design" required>
+                            {% for design_code, design_name in card_designs %}
+                            <option value="{{ design_code }}">{{ design_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Начальный баланс</label>
+                        <input type="number" class="form-control" name="balance" value="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-dark">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

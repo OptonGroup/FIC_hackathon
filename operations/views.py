@@ -5,9 +5,10 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.contrib import messages
-from .models import Transaction, Credit, Target, RegularPayment, Category
+from .models import Transaction, Credit, Target, RegularPayment, Category, Card
 from django.db.models.functions import TruncMonth
 import json
+from decimal import Decimal
 
 @login_required
 def dashboard(request):
@@ -184,12 +185,14 @@ def dashboard(request):
 
 @login_required
 def transactions(request):
+    """Отображение списка транзакций"""
     # Получаем все транзакции пользователя
     transactions_list = Transaction.objects.filter(user=request.user)
     
     # Применяем фильтры
     transaction_type = request.GET.get('type')
     category = request.GET.get('category')
+    card = request.GET.get('card')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     
@@ -198,6 +201,9 @@ def transactions(request):
     
     if category:
         transactions_list = transactions_list.filter(category_id=category)
+        
+    if card:
+        transactions_list = transactions_list.filter(card_id=card)
     
     if date_from:
         transactions_list = transactions_list.filter(date__gte=date_from)
@@ -206,18 +212,18 @@ def transactions(request):
         transactions_list = transactions_list.filter(date__lte=date_to)
     
     # Сортировка
-    sort_field = request.GET.get('sort', '-date')  # По умолчанию сортируем по дате (новые сверху)
+    sort_field = request.GET.get('sort', '-date')
     if request.GET.get('desc'):
         sort_field = f"-{sort_field.replace('-', '')}"
     else:
         sort_field = sort_field.replace('-', '')
-        
-    # Маппинг полей сортировки
+    
     sort_mapping = {
         'date': 'date',
         'type': 'type',
         'category': 'category__name',
-        'amount': 'amount'
+        'amount': 'amount',
+        'card': 'card__name'
     }
     
     if sort_field.replace('-', '') in sort_mapping:
@@ -225,27 +231,19 @@ def transactions(request):
         transactions_list = transactions_list.order_by(sort_field)
     
     # Пагинация
-    paginator = Paginator(transactions_list, 10)  # 10 транзакций на страницу
+    paginator = Paginator(transactions_list, 10)
     page = request.GET.get('page')
     transactions = paginator.get_page(page)
     
-    # Получаем все категории для текущего пользователя
-    categories = Category.objects.filter(user=request.user).order_by('name')
-    
-    # Статистика для текущего фильтра
-    filtered_income = transactions_list.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
-    filtered_expenses = transactions_list.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
-    filtered_balance = filtered_income - filtered_expenses
+    transactions = transactions_list.select_related('card', 'category').all()
     
     context = {
         'transactions': transactions,
-        'categories': categories,
-        'filtered_income': filtered_income,
-        'filtered_expenses': filtered_expenses,
-        'filtered_balance': filtered_balance,
-        # Сохраняем параметры фильтрации для формы
+        'categories': Category.objects.filter(user=request.user),
+        'cards': Card.objects.select_related().filter(user=request.user),
         'selected_type': transaction_type,
-        'selected_category': category,
+        'selected_category': int(category) if category else None,
+        'selected_card': int(card) if card else None,
         'selected_date_from': date_from,
         'selected_date_to': date_to,
     }
@@ -254,25 +252,45 @@ def transactions(request):
 
 @login_required
 def add_transaction(request):
+    """Добавление новой транзакции"""
     if request.method == 'POST':
-        # Получаем данные из формы
-        transaction_type = request.POST.get('type')
-        category_id = request.POST.get('category')
-        amount = request.POST.get('amount')
-        description = request.POST.get('description')
-        date = request.POST.get('date')
-        
-        # Создаем новую транзакцию
-        Transaction.objects.create(
-            user=request.user,
-            type=transaction_type,
-            category_id=category_id,
-            amount=amount,
-            description=description,
-            date=date
-        )
-        
-        return redirect('operations:transactions')
+        try:
+            # Получаем карту и проверяем, что она принадлежит пользователю
+            card_id = request.POST.get('card')
+            if not card_id:
+                raise ValueError('Не выбрана карта')
+                
+            card = get_object_or_404(Card, id=card_id, user=request.user)
+            category = get_object_or_404(Category, id=request.POST.get('category'), user=request.user)
+            amount = Decimal(request.POST.get('amount'))
+            
+            # Создаем транзакцию с указанием карты
+            transaction = Transaction.objects.create(
+                user=request.user,
+                card=card,  # Добавляем карту
+                type=request.POST.get('type'),
+                amount=amount,
+                category=category,
+                description=request.POST.get('description', ''),
+                date=request.POST.get('date')
+            )
+            
+            # Обновляем баланс карты
+            if transaction.type == 'income':
+                card.balance += amount
+            else:
+                card.balance -= amount
+            card.save()
+            
+            messages.success(request, 'Транзакция успешно добавлена')
+        except Card.DoesNotExist:
+            messages.error(request, 'Выбранная карта не найдена')
+        except Category.DoesNotExist:
+            messages.error(request, 'Выбранная категория не найдена')
+        except ValueError as e:
+            messages.error(request, str(e))
+        except Exception as e:
+            messages.error(request, f'Ошибка при добавлении транзакции: {str(e)}')
     
     return redirect('operations:transactions')
 
@@ -570,3 +588,73 @@ def main(request):
     }
     
     return render(request, 'operations/main.html', context)
+
+@login_required
+def cards(request):
+    """Отображение списка карт пользователя"""
+    cards = Card.objects.filter(user=request.user)
+    context = {
+        'cards': cards,
+        'card_types': Card.CARD_TYPES,
+        'card_designs': Card.CARD_DESIGNS,
+    }
+    return render(request, 'operations/cards.html', context)
+
+@login_required
+def add_card(request):
+    """Добавление новой карты"""
+    if request.method == 'POST':
+        try:
+            # Очистка номера карты от пробелов
+            card_number = request.POST.get('card_number').replace(' ', '')
+            
+            Card.objects.create(
+                user=request.user,
+                name=request.POST.get('name'),
+                card_number=card_number,
+                bank=request.POST.get('bank'),
+                card_type=request.POST.get('card_type'),
+                design=request.POST.get('design'),
+                balance=request.POST.get('balance', 0)
+            )
+            messages.success(request, 'Карта успешно добавлена')
+        except Exception as e:
+            messages.error(request, f'Ошибка при добавлении карты: {str(e)}')
+    return redirect('operations:cards')
+
+@login_required
+def edit_card(request, card_id):
+    """Редактирование существующей карты"""
+    if request.method == 'POST':
+        card = get_object_or_404(Card, id=card_id, user=request.user)
+        try:
+            card_number = request.POST.get('card_number').replace(' ', '')
+            
+            card.name = request.POST.get('name')
+            card.card_number = card_number
+            card.bank = request.POST.get('bank')
+            card.card_type = request.POST.get('card_type')
+            card.design = request.POST.get('design')
+            card.balance = request.POST.get('balance')
+            card.save()
+            
+            messages.success(request, 'Карта успешно обновлена')
+        except Exception as e:
+            messages.error(request, f'Ошибка при обновлении карты: {str(e)}')
+    return redirect('operations:cards')
+
+@login_required
+def delete_card(request, card_id):
+    """Удаление карты"""
+    if request.method == 'POST':
+        card = get_object_or_404(Card, id=card_id, user=request.user)
+        try:
+            # Проверяем, есть ли транзакции, связанные с картой
+            if Transaction.objects.filter(card=card).exists():
+                messages.error(request, 'Невозможно удалить карту, с которой совершались транзакции')
+            else:
+                card.delete()
+                messages.success(request, 'Карта успешно удалена')
+        except Exception as e:
+            messages.error(request, f'Ошибка при удалении карты: {str(e)}')
+    return redirect('operations:cards')

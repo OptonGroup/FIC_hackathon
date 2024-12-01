@@ -34,6 +34,17 @@
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label">Карта</label>
+                    <select class="form-select" name="card" id="cardFilter">
+                        <option value="">Все карты</option>
+                        {% for card in cards %}
+                        <option value="{{ card.id }}" {% if selected_card == card.id %}selected{% endif %}>
+                            {{ card.name }} ({{ card.bank }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">Дата от</label>
                     <input type="date" class="form-control" name="date_from" id="dateFromFilter" value="{{ selected_date_from }}">
                 </div>
@@ -73,6 +84,12 @@
                                 </a>
                             </th>
                             <th>
+                                <a href="?{% if request.GET.sort == 'card' and not request.GET.desc %}sort=card&desc=1{% else %}sort=card{% endif %}" class="text-dark text-decoration-none">
+                                    Карта
+                                    <i class="bi bi-arrow-{% if request.GET.sort == 'card' and request.GET.desc %}down{% else %}up{% endif %}"></i>
+                                </a>
+                            </th>
+                            <th>
                                 <a href="?{% if request.GET.sort == 'category' and not request.GET.desc %}sort=category&desc=1{% else %}sort=category{% endif %}" class="text-dark text-decoration-none">
                                     Категория
                                     <i class="bi bi-arrow-{% if request.GET.sort == 'category' and request.GET.desc %}down{% else %}up{% endif %}"></i>
@@ -98,14 +115,38 @@
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-secondary">
+                                {% if transaction.card %}
+                                <div class="card-preview-mini d-inline-flex align-items-center p-2 rounded-2 
+                                    {% if transaction.card.design == 'classic_black' %}bg-dark text-white
+                                    {% elif transaction.card.design == 'classic_white' %}bg-white text-dark border
+                                    {% elif transaction.card.design == 'gold' %}bg-warning text-dark
+                                    {% elif transaction.card.design == 'platinum' %}bg-secondary text-white
+                                    {% elif transaction.card.design == 'metal' %}bg-light text-dark border
+                                    {% else %}bg-white text-dark border{% endif %}">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi {% if transaction.card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} me-2"></i>
+                                        <div>
+                                            <small class="d-block lh-1">{{ transaction.card.name }}</small>
+                                            <small class="d-block text-opacity-75">{{ transaction.card.bank }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">Карта не указана</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ transaction.category.color }}">
                                     <i class="bi {{ transaction.category.icon }} me-1"></i>
                                     {{ transaction.category.name }}
                                 </span>
                             </td>
-                            <td>{{ transaction.description }}</td>
-                            <td class="{% if transaction.type == 'income' %}text-success{% else %}text-danger{% endif %}">
-                                {% if transaction.type == 'income' %}+{% else %}-{% endif %}{{ transaction.amount }} ₽
+                            <td>{{ transaction.description|default:"-" }}</td>
+                            <td>
+                                <span class="{% if transaction.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if transaction.type == 'income' %}+{% else %}-{% endif %}
+                                    {{ transaction.amount|floatformat:2 }} ₽
+                                </span>
                             </td>
                             <td>
                                 <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTransactionModal{{ transaction.id }}">
@@ -159,6 +200,16 @@
                                                 <label class="form-label">Дата</label>
                                                 <input type="date" class="form-control" name="date" value="{{ transaction.date|date:'Y-m-d' }}" required>
                                             </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Карта</label>
+                                                <select class="form-select" name="card" required>
+                                                    {% for card in cards %}
+                                                    <option value="{{ card.id }}" {% if transaction.card.id == card.id %}selected{% endif %}>
+                                                        {{ card.name }} ({{ card.bank }}) - {{ card.get_masked_number }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
@@ -195,9 +246,8 @@
                         </div>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-4">
-                                <i class="bi bi-inbox display-4 d-block mb-2 text-secondary"></i>
-                                Транзакции не найдены
+                            <td colspan="7" class="text-center py-4">
+                                <p class="text-muted mb-0">Транзакции не найдены</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -219,6 +269,18 @@
             <form method="post" action="{% url 'operations:add_transaction' %}">
                 {% csrf_token %}
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Карта</label>
+                        <select class="form-select" name="card" required>
+                            {% for card in cards %}
+                            <option value="{{ card.id }}">
+                                <div class="d-flex align-items-center">
+                                    {{ card.name }} ({{ card.bank }}) - {{ card.get_masked_number }}
+                                </div>
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Тип</label>
                         <select class="form-select" name="type" id="transactionType" required>
@@ -259,6 +321,23 @@
         </div>
     </div>
 </div>
+
+<style>
+    .card-preview-mini {
+        font-size: 0.875rem;
+        min-width: 200px;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .card-preview-mini:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .text-opacity-75 {
+        opacity: 0.75;
+    }
+</style>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -269,6 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Очищаем все поля фильтров
         document.getElementById('typeFilter').value = '';
         document.getElementById('categoryFilter').value = '';
+        document.getElementById('cardFilter').value = '';
         document.getElementById('dateFromFilter').value = '';
         document.getElementById('dateToFilter').value = '';
         

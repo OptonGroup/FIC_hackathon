@@ -22,4 +22,8 @@ urlpatterns = [
     path('regular-payments/<int:payment_id>/edit/', views.edit_regular_payment, name='edit_regular_payment'),
     path('regular-payments/<int:payment_id>/delete/', views.delete_regular_payment, name='delete_regular_payment'),
     path('analytics/', views.analytics, name='analytics'),
+    path('cards/', views.cards, name='cards'),
+    path('cards/add/', views.add_card, name='add_card'),
+    path('cards/<int:card_id>/edit/', views.edit_card, name='edit_card'),
+    path('cards/<int:card_id>/delete/', views.delete_card, name='delete_card'),
 ]

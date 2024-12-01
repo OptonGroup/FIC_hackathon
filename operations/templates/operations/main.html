@@ -150,6 +150,11 @@
                     <i class="bi bi-arrow-repeat"></i> Регулярные платежи
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
+                    <i class="bi bi-credit-card-2-front"></i> Мои карты
+                </a>
+            </li>
         </ul>
     </div>
 
