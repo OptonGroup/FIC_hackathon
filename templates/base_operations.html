@@ -92,7 +92,7 @@
 </head>
 <body>
     <!-- Боковая панель -->
-    <div class="sidebar" id="sidebar">
+    <div class="sidebar" id="sidebar" style="margin-right: 5rem;">
         <div class="profile-section">
             <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
                 {% if user.profile.avatar %}
@@ -147,7 +147,7 @@
     </button>
 
     <!-- Основной контент -->
-    <div class="main-content" id="mainContent">
+    <div class="main-content" id="mainContent" style="padding-left: 40px;">
         {% block content %}{% endblock %}
     </div>
 
