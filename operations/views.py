@@ -743,13 +743,13 @@ def edit_card(request, card_id):
         card = get_object_or_404(Card, id=card_id, user=request.user)
         try:
             card_number = request.POST.get('card_number').replace(' ', '')
-            card_info = get_bank_by_card_number(card_number)
+            # card_info = get_bank_by_card_number(card_number)
             card.name = request.POST.get('name')
             card.card_number = card_number
-            # card.bank = request.POST.get('bank')
-            # card.card_type = request.POST.get('card_type')
-            card.bank = card_info['bank_name']
-            card.card_type = card_info['card_type']
+            card.bank = request.POST.get('bank')
+            card.card_type = request.POST.get('card_type')
+            # card.bank = card_info['bank_name']
+            # card.card_type = card_info['card_type']
             card.design = request.POST.get('design')
             card.balance = request.POST.get('balance')
             card.save()
