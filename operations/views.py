@@ -9,6 +9,20 @@ from .models import Transaction, Credit, Target, RegularPayment, Category, Card
 from django.db.models.functions import TruncMonth
 import json
 from decimal import Decimal
+import requests
+
+def get_currency_rates():
+    # Заглушка с фиксированными значениями
+    return {
+        'USD': Decimal('96.74'),
+        'EUR': Decimal('104.52'),
+        'CNY': Decimal('13.41'),
+        'BTC': format_number(Decimal('4325789.45'))  # Форматируем число прямо здесь
+    }
+
+def format_number(number):
+    """Форматирует большие числа с разделителями"""
+    return '{:,.0f}'.format(number).replace(',', ' ')
 
 @login_required
 def dashboard(request):
@@ -159,6 +173,8 @@ def dashboard(request):
         user=request.user
     ).select_related('category').order_by('-date')[:5]
 
+    currency_rates = get_currency_rates()
+
     context = {
         'total_balance': total_balance,
         'monthly_expenses': monthly_expenses,
@@ -178,7 +194,8 @@ def dashboard(request):
         'week_dates': json.dumps([
             (today - timedelta(days=i)).strftime('%d.%m')
             for i in range(6, -1, -1)
-        ])
+        ]),
+        'currency_rates': currency_rates,
     }
     
     return render(request, 'operations/main.html', context)
@@ -497,6 +514,9 @@ def main(request):
     today = timezone.now()
     start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     
+    # Получаем курсы валют (уже отформатированные)
+    currency_rates = get_currency_rates()
+    
     # Статистика за текущий месяц
     monthly_stats = Transaction.objects.filter(
         user=request.user,
@@ -585,6 +605,7 @@ def main(request):
         'expense_categories': json.dumps(expense_categories),
         'expense_distribution': expense_distribution,
         'recent_transactions': recent_transactions,
+        'currency_rates': currency_rates,
     }
     
     return render(request, 'operations/main.html', context)
