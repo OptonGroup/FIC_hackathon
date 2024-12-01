@@ -163,10 +163,14 @@
     <div class="sidebar" id="sidebar">
         <div class="profile-section">
             <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
-                {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                {% if user.profile.avatar_base64 %}
+                    <img src="data:image/png;base64,{{ user.profile.avatar_base64 }}" 
+                         class="rounded-circle me-3" 
+                         style="width: 50px; height: 50px; object-fit: cover;">
                 {% else %}
-                    <img src="/media/avatars/default.png" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                    <img src="{% static 'img/default-avatar.png' %}" 
+                         class="rounded-circle me-3" 
+                         style="width: 50px; height: 50px; object-fit: cover;">
                 {% endif %}
                 <div>
                     <h6 class="mb-0">{{ user.username }}</h6>
@@ -207,10 +211,14 @@
                 </a>
             </li>
         </ul>
-        <a href="{% url 'accounts:logout' %}" class="nav-item logout-nav d-flex align-items-center">
-            <i class="bi bi-box-arrow-right"></i>
-            <span>Выход</span>
-        </a>
+
+        <!-- Кнопка выхода в самом низу -->
+        <div style="position: absolute; bottom: 20px; width: 100%; padding: 0 20px;">
+            <a href="{% url 'accounts:logout' %}" class="nav-item logout-nav d-flex align-items-center">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Выход</span>
+            </a>
+        </div>
     </div>
 
     <!-- Кнопка переключения боковой панели -->
@@ -595,9 +603,6 @@
             createMiniChart('cnyChart', [13.2, 13.3, 13.4, 13.3, 13.5, 13.4], '#198754');
             createMiniChart('btcChart', [4200000, 4250000, 4300000, 4280000, 4350000, 4325000], '#ffc107');
         });
-
-        // Остальные ваши графики (balanceChart, expensesChart, categoryChart)
-        // ... существующий код ...
     </script>
 </body>
 </html>

@@ -26,15 +26,16 @@ def logout_view(request):
 
 @login_required
 def update_profile(request):
-    profile, created = Profile.objects.get_or_create(user=request.user)
-    
     if request.method == 'POST':
-        form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Аватар успешно обновлен!')
+        try:
+            base64_data = request.POST.get('avatar_base64')
+            if base64_data:
+                profile = request.user.profile
+                profile.avatar_base64 = base64_data
+                profile.save()
+                messages.success(request, 'Аватар успешно обновлен!')
             return redirect('operations:dashboard')
-    else:
-        form = ProfileUpdateForm(instance=profile)
+        except Exception as e:
+            messages.error(request, f'Ошибка при обновлении аватара: {str(e)}')
     
-    return render(request, 'accounts/update_profile.html', {'form': form})
+    return render(request, 'accounts/update_profile.html')

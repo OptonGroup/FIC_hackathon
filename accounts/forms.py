@@ -4,41 +4,23 @@ from django.contrib.auth.models import User
 from .models import Profile
 
 class CustomUserCreationForm(UserCreationForm):
-    error_messages = {
-        'password_mismatch': 'Введенные пароли не совпадают.',
-        'password_too_short': 'Пароль слишком короткий. Он должен содержать как минимум 8 символов.',
-        'password_too_similar': 'Пароль слишком похож на имя пользователя.',
-        'password_too_common': 'Пароль слишком простой.',
-        'password_entirely_numeric': 'Пароль не может состоять только из цифр.',
-    }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['username'].error_messages = {
-            'unique': 'Пользователь с таким именем уже существует.',
-            'invalid': 'Имя пользователя может содержать только буквы, цифры и символы @/./+/-/_',
-            'required': 'Это поле обязательно для заполнения.',
-        }
-        self.fields['password1'].error_messages = {
-            'required': 'Это поле обязательно для заполнения.',
-        }
-        self.fields['password2'].error_messages = {
-            'required': 'Это поле обязательно для заполнения.',
-        }
-
-        # Русские названия полей
-        self.fields['username'].label = 'Имя пользователя'
-        self.fields['password1'].label = 'Пароль'
-        self.fields['password2'].label = 'Подтверждение пароля'
+    email = forms.EmailField(required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'password1', 'password2')
+        fields = ("username", "email", "password1", "password2")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['avatar']
+        fields = ['avatar_base64']
         widgets = {
-            'avatar': forms.FileInput(attrs={'class': 'form-control'})
+            'avatar_base64': forms.HiddenInput()
         }

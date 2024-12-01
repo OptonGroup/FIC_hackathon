@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'img/fin-viision-2.png' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 </head>
 <body>
     <div class="ai-assistant-popup" id="aiAssistantPopup">
@@ -114,17 +115,49 @@
             const minimizeBtn = document.getElementById('minimizeAI');
             const closeBtn = document.getElementById('closeAI');
 
+            // Анимация появления
+            gsap.to(popup, {
+                bottom: "20px",
+                opacity: 1,
+                duration: 0.8,
+                ease: "power4.out",
+                delay: 1
+            });
+
+            // Анимация сворачивания
             minimizeBtn.addEventListener('click', function() {
                 popup.classList.toggle('minimized');
                 if (popup.classList.contains('minimized')) {
-                    minimizeBtn.textContent = '□';
-                } else {
+                    // Разворачиваем
+                    gsap.to(popup, {
+                        height: "500px",
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
                     minimizeBtn.textContent = '_';
+                } else {
+                    // Сворачиваем
+                    gsap.to(popup, {
+                        height: "60px",
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
+                    minimizeBtn.textContent = '□';
                 }
+                popup.classList.toggle('minimized');
             });
 
+            // Анимация закрытия
             closeBtn.addEventListener('click', function() {
-                popup.classList.add('hidden');
+                gsap.to(popup, {
+                    bottom: "-600px",
+                    opacity: 0,
+                    duration: 0.5,
+                    ease: "power2.in",
+                    onComplete: function() {
+                        popup.classList.add('hidden');
+                    }
+                });
             });
 
             // Функция для получения информации об аккаунте
@@ -136,7 +169,7 @@
                     const hasTargets = Boolean('{% if user.targets.all %}true{% endif %}');
                     const hasRegularPayments = Boolean('{% if user.regular_payments.all %}true{% endif %}');
                     
-                    // Если информации недостаточно
+                    // Если информации недост��ч��о
                     if (!hasBalance && !hasCredits && !hasTargets && !hasRegularPayments) {
                         addMessage(`
                             Похоже, у вас пока недостаточно информации для полноценного финансового анализа. 
@@ -233,59 +266,60 @@
     {% endif %}
 
     <!-- Боковая панель -->
-    <div class="sidebar" id="sidebar" style="margin-right: 5rem;">
-        <div class="sidebar-content">
-            <div class="profile-section">
-                <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
-                    {% if user.profile.avatar %}
-                        <img src="{{ user.profile.avatar.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                    {% else %}
-                        <img src="/media/avatars/default.png" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
-                    {% endif %}
-                    <div>
-                        <h6 class="mb-0">{{ user.username }}</h6>
-                        <small class="text-secondary">Перейти в профиль</small>
-                    </div>
+    <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+            <div class="d-flex align-items-center" style="cursor: pointer;" onclick="window.location.href='{% url 'accounts:update_profile' %}'">
+                {% if user.profile.avatar_base64 %}
+                    <img src="data:image/png;base64,{{ user.profile.avatar_base64 }}" 
+                         class="rounded-circle me-3" 
+                         style="width: 50px; height: 50px; object-fit: cover;">
+                {% else %}
+                    <img src="{% static 'img/default-avatar.png' %}" 
+                         class="rounded-circle me-3" 
+                         style="width: 50px; height: 50px; object-fit: cover;">
+                {% endif %}
+                <div>
+                    <h6 class="mb-0">{{ user.username }}</h6>
+                    <small class="text-secondary">Перейти в профиль</small>
                 </div>
             </div>
-
-            <ul class="nav flex-column mt-3">
-                <li class="nav-item">
-                    <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                        <i class="bi bi-house-door"></i> Главная
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
-                        <i class="bi bi-credit-card"></i> Транзакции
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
-                        <i class="bi bi-piggy-bank"></i> Цели
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
-                        <i class="bi bi-cash-coin"></i> Кредиты
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
-                        <i class="bi bi-arrow-repeat"></i> Регулярные платежи
-                    </a>
-                </li>
-                <li class="nav-item"></li>
-                    <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
-                        <i class="bi bi-credit-card-2-front"></i> Мои карты
-                    </a>
-                </li>
-                <div class="nav-divider"></div>
-            </ul>
         </div>
 
-        <div class="sidebar-footer">
-            <div class="nav-divider"></div>
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+                <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-house-door"></i> Главная
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+                    <i class="bi bi-credit-card"></i> Транзакции
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
+                    <i class="bi bi-piggy-bank"></i> Цели
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
+                    <i class="bi bi-cash-coin"></i> Кредиты
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
+                    <i class="bi bi-arrow-repeat"></i> Регулярные платежи
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
+                    <i class="bi bi-credit-card-2-front"></i> Мои карты
+                </a>
+            </li>
+        </ul>
+
+        <!-- Кнопка выхода в самом низу -->
+        <div style="position: absolute; bottom: 20px; width: 100%; padding: 0 20px;">
             <a href="{% url 'accounts:logout' %}" class="nav-item logout-nav d-flex align-items-center">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Выход</span>

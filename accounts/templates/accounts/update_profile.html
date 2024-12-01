@@ -1,4 +1,5 @@
 {% extends 'base_operations.html' %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
@@ -11,8 +12,10 @@
                     {% csrf_token %}
                     
                     <div class="text-center mb-4">
-                        <img src="{{ user.profile.avatar.url }}" alt="Current Avatar" 
-                             class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;"
+                        <img src="{% if user.profile.avatar_base64 %}data:image/png;base64,{{ user.profile.avatar_base64 }}{% else %}{% static 'img/default-avatar.png' %}{% endif %}"
+                             alt="Current Avatar" 
+                             class="rounded-circle mb-3" 
+                             style="width: 150px; height: 150px; object-fit: cover;"
                              id="avatarPreview">
                     </div>
 
@@ -22,6 +25,7 @@
                         </label>
                         <input type="file" name="avatar" id="avatarInput" accept="image/*" 
                                style="display: none;" onchange="previewImage(this);">
+                        <input type="hidden" name="avatar_base64" id="avatarBase64">
                         <div class="text-secondary small">
                             Поддерживаемые форматы: JPG, PNG, GIF
                         </div>
@@ -33,14 +37,6 @@
                         </button>
                     </div>
                 </form>
-
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} mt-3">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
             </div>
         </div>
     </div>
@@ -53,6 +49,8 @@ function previewImage(input) {
         
         reader.onload = function(e) {
             document.getElementById('avatarPreview').src = e.target.result;
+            // Сохраняем base64 в скрытое поле
+            document.getElementById('avatarBase64').value = e.target.result.split(',')[1];
         }
         
         reader.readAsDataURL(input.files[0]);
