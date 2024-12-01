@@ -89,19 +89,26 @@
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     z-index: 1000;
-    transition: all 0.3s ease;
+    max-height: 400px;
     display: flex;
     flex-direction: column;
-    max-height: 400px;
 }
 
-.ai-assistant-popup.minimized {
-    height: 45px;
+.ai-assistant-popup.minimized .ai-assistant-content {
+    height: 0;
     overflow: hidden;
 }
 
-.ai-assistant-popup.hidden {
-    display: none;
+.ai-assistant-content {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-assistant-popup:not(.minimized) .ai-assistant-content {
+    height: calc(400px - 45px);
 }
 
 .ai-assistant-header {
@@ -113,6 +120,27 @@
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
+}
+
+.minimize-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 18px;
+    line-height: 1;
+    transition: opacity 0.2s;
+    transform: rotate(0deg);
+    transition: transform 0.3s ease;
+}
+
+.minimize-btn:hover {
+    opacity: 0.8;
+}
+
+.ai-assistant-popup:not(.minimized) .minimize-btn {
+    transform: rotate(180deg);
 }
 
 .ai-controls {
@@ -143,6 +171,10 @@
 }
 
 .ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(400px - 100px);
+    padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -217,12 +249,13 @@
 }
 
 .ai-input-container {
-    display: flex;
-    gap: 10px;
     padding: 10px;
     border-top: 1px solid #eee;
     background: white;
     border-radius: 0 0 10px 10px;
+    display: flex;
+    gap: 10px;
+    min-height: 55px;
 }
 
 .ai-input-container input {
@@ -296,4 +329,95 @@
 @keyframes loading {
     0%, 100% { transform: scale(0.3); }
     50% { transform: scale(1); }
+}
+
+.markdown-content {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3 {
+    margin-top: 16px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.markdown-content h1 { font-size: 1.5em; }
+.markdown-content h2 { font-size: 1.3em; }
+.markdown-content h3 { font-size: 1.1em; }
+
+.markdown-content ul,
+.markdown-content ol {
+    padding-left: 20px;
+    margin-bottom: 16px;
+}
+
+.markdown-content li {
+    margin: 4px 0;
+}
+
+.markdown-content code {
+    padding: 2px 4px;
+    background-color: rgba(27,31,35,0.05);
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 85%;
+}
+
+.markdown-content pre {
+    padding: 16px;
+    overflow: auto;
+    background-color: #f6f8fa;
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.markdown-content pre code {
+    padding: 0;
+    background-color: transparent;
+}
+
+.markdown-content blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+    margin: 0 0 16px 0;
+}
+
+.markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+.markdown-content table tr:nth-child(2n) {
+    background-color: #f6f8fa;
+}
+
+/* Стили для скроллбара */
+.ai-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ai-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.ai-messages::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.ai-messages::-webkit-scrollbar-thumb:hover {
+    background: #555;
 } 
