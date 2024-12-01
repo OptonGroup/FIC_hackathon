@@ -10,15 +10,48 @@ from django.db.models.functions import TruncMonth
 import json
 from decimal import Decimal
 import requests
+from django.core.cache import cache
+from django.http import JsonResponse
 
 def get_currency_rates():
-    # Заглушка с фиксированными значениями
-    return {
-        'USD': Decimal('96.74'),
-        'EUR': Decimal('104.52'),
-        'CNY': Decimal('13.41'),
-        'BTC': format_number(Decimal('4325789.45'))  # Форматируем число прямо здесь
-    }
+    """Получение актуальных курсов валют с кэшированием"""
+    # Пробуем получить данные из кэша
+    cached_rates = cache.get('currency_rates')
+    if cached_rates:
+        return cached_rates
+
+    try:
+        # Получаем курсы от ЦБ РФ
+        response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+        response.raise_for_status()
+        data = response.json()
+        
+        # Форматируем данные
+        rates = {
+            'USD': Decimal(str(data['Valute']['USD']['Value'])),
+            'EUR': Decimal(str(data['Valute']['EUR']['Value'])),
+            'CNY': Decimal(str(data['Valute']['CNY']['Value'])),
+        }
+        
+        # Добавляем курс BTC (можно использовать другое API для криптовалют)
+        try:
+            btc_response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=rub')
+            btc_data = btc_response.json()
+            rates['BTC'] = Decimal(str(btc_data['bitcoin']['rub']))
+        except:
+            rates['BTC'] = Decimal('0')  # Если не удалось получить курс BTC
+
+        # Кэшируем результат на 1 час
+        cache.set('currency_rates', rates, 3600)
+        return rates
+    except:
+        # В случае ошибки возвращаем последние известные курсы или значения по умолчанию
+        return {
+            'USD': Decimal('96.74'),
+            'EUR': Decimal('104.52'),
+            'CNY': Decimal('13.41'),
+            'BTC': Decimal('4325789.45')
+        }
 
 def format_number(number):
     """Форматирует большие числа с разделителями"""
@@ -391,7 +424,7 @@ def edit_target(request, target_id):
             target.current_amount = request.POST.get('current_amount')
             target.deadline = request.POST.get('deadline')
             target.save()
-            messages.success(request, 'Цель успешно обновлена')
+            messages.success(request, 'Цель успеш��о обновлена')
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении цели: {str(e)}')
     return redirect('operations:targets')
@@ -739,7 +772,7 @@ def delete_card(request, card_id):
                 card.delete()
                 messages.success(request, 'Карта успешно удалена')
         except Exception as e:
-            messages.error(request, f'Ошибка при удалении карты: {str(e)}')
+            messages.error(request, f'Ошибка при удалении кары: {str(e)}')
     return redirect('operations:cards')
 
 @login_required
@@ -831,3 +864,8 @@ def calendar(request):
     }
     
     return render(request, 'operations/calendar.html', context)
+
+def get_currency_rates_api(request):
+    """API endpoint для получения курсов валют"""
+    rates = get_currency_rates()
+    return JsonResponse(rates, safe=False)
