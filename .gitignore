@@ -6,3 +6,4 @@
 *.pyd
 *.pyz
 *.pyw
+db.sqlite3

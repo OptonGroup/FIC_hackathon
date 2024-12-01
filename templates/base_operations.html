@@ -91,6 +91,31 @@
     </style>
 </head>
 <body>
+    {% if messages %}
+        <div class="message-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <script>
+            // Автоматическое скрытие алертов через 3 секунды
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    var alerts = document.getElementsByClassName('alert');
+                    for(var i = 0; i < alerts.length; i++) {
+                        var alert = alerts[i];
+                        var bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 3000);
+            });
+        </script>
+    {% endif %}
+
     <!-- Боковая панель -->
     <div class="sidebar" id="sidebar" style="margin-right: 5rem;">
         <div class="profile-section">
