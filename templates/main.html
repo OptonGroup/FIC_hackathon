@@ -1,307 +1,150 @@
-{% extends 'base.html' %}
-
-{% block title %}FinVision - Главная{% endblock %}
-
-{% block head %}
-{% endblock %}
+{% extends 'base_main.html' %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<style>
-    body {
-        background: #121212;
-        color: #ffffff;
-    }
-
-    .container {
-        color: #ffffff;
-    }
-
-    .hero-section {
-        background: linear-gradient(45deg, #1a1a1a, #2c2c2c);
-        border: 1px solid #333;
-        color: #ffffff;
-        padding: 2rem;
-        border-radius: 8px;
-        margin-bottom: 2rem;
-    }
-
-    .feature-card, .advantage-card, .testimonial-card {
-        background: #1e1e1e;
-        border: 1px solid #333;
-        color: #ffffff;
-        padding: 1.5rem;
-        border-radius: 8px;
-        height: 100%;
-    }
-
-    .feature-card i, .advantage-card i {
-        font-size: 2.5rem;
-        color: #808080;
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    .stat-card {
-        background: linear-gradient(45deg, #1a1a1a, #2c2c2c);
-        border: 1px solid #333;
-        color: #ffffff;
-        padding: 1.5rem;
-        border-radius: 8px;
-        height: 100%;
-    }
-
-    .testimonial-card {
-        position: relative;
-        padding-top: 3rem;
-        background: #1e1e1e;
-        margin-top: 2rem;
-    }
-
-    .testimonial-img {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #333;
-        position: absolute;
-        top: -35px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .text-secondary {
-        color: #b0b0b0 !important;
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        color: #ffffff;
-    }
-
-    .btn-custom {
-        background: #404040;
-        color: white;
-        border: none;
-        padding: 0.5rem 1.5rem;
-    }
-
-    .btn-custom:hover {
-        background: #505050;
-        color: white;
-    }
-
-    .btn-custom-outline {
-        background: transparent;
-        color: white;
-        border: 2px solid white;
-        padding: 0.5rem 1.5rem;
-    }
-
-    .btn-custom-outline:hover {
-        background: white;
-        color: #121212;
-    }
-
-    .quote-icon {
-        color: #404040;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    p {
-        color: #e0e0e0;
-        margin-bottom: 1rem;
-    }
-
-    .display-4, .lead, .h4, .h6 {
-        color: #ffffff;
-    }
-
-    small {
-        color: #b0b0b0;
-    }
-
-    .advantages-section,
-    .stats-section,
-    .testimonials-section {
-        padding: 4rem 0;
-    }
-</style>
-<div class="container mt-5">
-    <div class="hero-section" id="heroSection">
-        <h1 class="display-4 fw-bold">Добро пожаловать в FinVision!</h1>
-        <p class="lead">Ваш персональный помощник в управлении финансами</p>
-        <hr class="my-4 opacity-25">
-        <p>Начните контролировать свои финансы прямо сейчас</p>
-        {% if not user.is_authenticated %}
-            <a class="btn btn-custom me-3" href="{% url 'accounts:login' %}">Войти</a>
-            <a class="btn btn-custom-outline" href="{% url 'accounts:register' %}">Зарегистрироваться</a>
-        {% else %}
-            <a class="btn btn-custom-outline" href="{% url 'operations:dashboard' %}">Перейти к dashboard</a>
-        {% endif %}
-    </div>
-
-    <div class="row mt-5 g-4">
-        <div class="col-md-4">
-            <div class="feature-card" id="card1">
-                <i class="bi bi-wallet2"></i>
-                <h3 class="fw-bold">Учет расходов</h3>
-                <p class="text-secondary">Отслеживайте все ваши расходы и доходы в одном месте</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card" id="card2">
-                <i class="bi bi-trophy"></i>
-                <h3 class="fw-bold">Финансовые цели</h3>
-                <p class="text-secondary">Ставьте цели и отслеживайте прогресс их достижения</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="feature-card" id="card3">
-                <i class="bi bi-credit-card"></i>
-                <h3 class="fw-bold">Кредиты</h3>
-                <p class="text-secondary">Управляйте кредитами и планируйте погашение</p>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="">
+                <h1 class="hero-title">Управляйте финансами с умом</h1>
+                <p class="hero-subtitle">FinVision поможет вам контролировать расходы, достигать финансовых целей и планировать будущее.</p>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">Начать бесплатно</a>
+                {% else %}
+                <a href="{% url 'operations:dashboard' %}" class="btn btn-primary btn-lg">Перейти в личный кабинет</a>
+                {% endif %}
             </div>
         </div>
     </div>
+</section>
 
-    <div class="advantages-section mt-5 py-5">
-        <h2 class="text-center mb-5 fw-bold">Почему выбирают FinVision?</h2>
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <i class="bi bi-graph-up feature-icon"></i>
+                    <h3 class="feature-title">Анализ расходов</h3>
+                    <p>Отслеживайте свои расходы и получайте подробную аналитику</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <i class="bi bi-piggy-bank feature-icon"></i>
+                    <h3 class="feature-title">Финансовые цели</h3>
+                    <p>Ставьте цели и следите за прогрессом их достижения</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card feature-card">
+                    <i class="bi bi-robot feature-icon"></i>
+                    <h3 class="feature-title">AI-ассистент</h3>
+                    <p>Получайте персональные рекомендации по управлению финансами</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-5">Почему выбирают FinVision?</h2>
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="advantage-card" id="advantage1">
-                    <i class="bi bi-lightning-charge"></i>
-                    <h3 class="h4 mb-3">Простота использования</h3>
-                    <p class="text-secondary">Интуитивно понятный интерфейс позволяет начать работу сразу после регистрации</p>
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="bi bi-lightning-charge feature-icon"></i>
+                        <h3 class="feature-title">Простота использования</h3>
+                        <p>Интуитивно понятный интерфейс позволяет начать работу сразу после регистрации</p>
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="advantage-card" id="advantage2">
-                    <i class="bi bi-shield-lock"></i>
-                    <h3 class="h4 mb-3">Безопасность данных</h3>
-                    <p class="text-secondary">Все ваши финансовые данные надежно защищены современными методами шифрования</p>
+                <div class="card h-100">
+                    <div class="card-body">
+                        <i class="bi bi-shield-check feature-icon"></i>
+                        <h3 class="feature-title">Безопасность данных</h3>
+                        <p>Все ваши финансовые данные надежно защищены современными методами шифрования</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="stats-section my-5 py-5">
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
         <div class="row text-center g-4">
             <div class="col-md-4">
-                <div class="stat-card" id="stat1">
-                    <i class="bi bi-people mb-3" style="font-size: 2rem;"></i>
-                    <h3 class="display-4 fw-bold">10K+</h3>
-                    <p>Активных пользователей</p>
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h2 class="stats-number">10K+</h2>
+                        <p class="stats-text">Активных пользователей</p>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card" id="stat2">
-                    <i class="bi bi-graph-up mb-3" style="font-size: 2rem;"></i>
-                    <h3 class="display-4 fw-bold">₽100M</h3>
-                    <p>Отслеживаемых средств</p>
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h2 class="stats-number">₽100M</h2>
+                        <p class="stats-text">Отслеживаемых средств</p>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="stat-card" id="stat3">
-                    <i class="bi bi-emoji-smile mb-3" style="font-size: 2rem;"></i>
-                    <h3 class="display-4 fw-bold">98%</h3>
-                    <p>Довольных клиентов</p>
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <h2 class="stats-number">98%</h2>
+                        <p class="stats-text">Довольных клиентов</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</section>
 
-    <div class="testimonials-section my-5 py-5">
-        <h2 class="text-center mb-5 fw-bold">Отзывы наших пользователей</h2>
+<!-- Testimonials Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-5">Отзывы наших пользователей</h2>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="testimonial-card" id="testimonial1">
-                    <img src="https://sun9-12.userapi.com/impg/kbHS1oxLCkqnWO9eYARvVkvVhaGmnN4_WczPwQ/7_zRojbovCM.jpg?size=430x430&quality=95&sign=0fe96c7ef431f87224fcb36b47812e33&type=album" alt="Александр Петров" class="testimonial-img">
-                    <i class="bi bi-quote quote-icon"></i>
-                    <p class="mb-3">"Благодаря FinVision я наконец-то навел порядок в своих финансах. Теперь точно знаю, на что трачу деньги."</p>
-                    <div class="testimonial-author">
-                        <h4 class="h6 mb-1">Александр Петров</h4>
-                        <small class="text-secondary">Предприниматель</small>
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <p class="testimonial-text">"Благодаря FinVision я наконец-то навел порядок в своих финансах. Теперь точно знаю, на что трачу деньги."</p>
+                        <div class="testimonial-author">
+                            <h4>Александр Петров</h4>
+                            <p class="text-muted">Предприниматель</p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="testimonial-card" id="testimonial2">
-                    <img src="https://sun9-23.userapi.com/impg/1uQMmz_pFgFuX996qhKteVx68Ue85Ea2JuOYBA/-gbIIQUVLuM.jpg?size=590x510&quality=95&sign=bf7318dfc6fdc3656644ef968d53f07a&type=album" alt="Мария Иванова" class="testimonial-img">
-                    <i class="bi bi-quote quote-icon"></i>
-                    <p class="mb-3">"Отличное приложение для контроля расходов. Особенно нравится функция постановки финансовых целей."</p>
-                    <div class="testimonial-author">
-                        <h4 class="h6 mb-1">Мария Иванова</h4>
-                        <small class="text-secondary">Бизнес-аналитик</small>
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <p class="testimonial-text">"Отличное приложение для контроля расходов. Особенно нравится функция постановки финансовых целей."</p>
+                        <div class="testimonial-author">
+                            <h4>Мария Иванова</h4>
+                            <p class="text-muted">Бизнес-аналитик</p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="testimonial-card" id="testimonial3">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRj3Pcs1nDAqZ6ZrFpCnARogzQXlf6NIzGfFg&s" alt="Дмитрий Сидоров" class="testimonial-img">
-                    <i class="bi bi-quote quote-icon"></i>
-                    <p class="mb-3">"Удобный интерфейс и понятная статистика. Теперь легко планировать бюджет на месяц вперед."</p>
-                    <div class="testimonial-author">
-                        <h4 class="h6 mb-1">Дмитрий Сидоров</h4>
-                        <small class="text-secondary">Трейдер<р</small>
+                <div class="card testimonial-card h-100">
+                    <div class="card-body">
+                        <p class="testimonial-text">"Удобный интерфейс и понятная статистика. Теперь легко планировать бюджет на месяц вперед."</p>
+                        <div class="testimonial-author">
+                            <h4>Дмитрий Сидоров</h4>
+                            <p class="text-muted">Трейдер</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-<script>
-    gsap.registerPlugin(ScrollTrigger);
-    
-    // Анимация hero секции
-    gsap.from("#heroSection", {
-        duration: 1.2,
-        y: 100,
-        opacity: 0,
-        ease: "power4.out"
-    });
-
-    // Анимация всех карточек
-    const animateCards = (selector) => {
-        const elements = document.querySelectorAll(selector);
-        elements.forEach((element, index) => {
-            gsap.from(element, {
-                duration: 0.8,
-                y: 50,
-                opacity: 0,
-                delay: 0.2 * index,
-                ease: "power3.out",
-                scrollTrigger: {
-                    trigger: element,
-                    start: "top bottom-=100",
-                    toggleActions: "play none none reverse"
-                }
-            });
-        });
-    };
-
-    // Применяем анимацию ко всем типам карточек
-    animateCards('.feature-card');
-    animateCards('.advantage-card');
-    animateCards('.stat-card');
-    animateCards('.testimonial-card');
-
-    // Анимация заголовков секций
-    gsap.utils.toArray('h2').forEach(heading => {
-        gsap.from(heading, {
-            duration: 1,
-            y: 50,
-            opacity: 0,
-            scrollTrigger: {
-                trigger: heading,
-                start: "top bottom-=100",
-                toggleActions: "play none none reverse"
-            }
-        });
-    });
-</script>
+</section>
 {% endblock %}

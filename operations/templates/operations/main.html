@@ -9,15 +9,63 @@
     <link rel="icon" type="image/x-icon" href="{% static 'img/fin-viision-2.png' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --sidebar-width: 280px;
-            --primary-color: #343a40;
-            --secondary-color: #495057;
-            --accent-color: #6c757d;
-            --text-color: #f8f9fa;
+            --primary-color: #ffffff;      /* Для sidebar и карточек */
+            --secondary-color: #363a58;    /* Для текста */
+            --active-color: #2f2cef;       /* Для активных элементов в sidebar */
+            --accent-color: #f87f0e;       /* Для акцентов и активных элементов */
+            --highlight-color: #18dccb;    /* Для выделения */
+            --warning-color: #f60cf0;      /* Для предупреждений */
+            --info-color: #2f2cef;         /* Для информационных элементов */
+            --neutral-1: #db98a8;          /* Для второстепенных элементов */
+            --neutral-2: #c3c8dc;          /* Для фоновых элементов */
+            --neutral-3: #94a0c5;          /* Для границ */
+            --neutral-4: #bbb5b1;          /* Для неактивных элементов */
+            --font-family: 'Roboto', sans-serif;
+            --text-color: #343C6A;
+            --background-color: #ffffff;   /* Для основного фона */
         }
 
+        body {
+            font-family: var(--font-family);
+            font-size: 1.05rem;  /* Увеличиваем базовый размер шрифта */
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+        }
+
+        .profile-section h6 {
+            font-weight: 500;
+        }
+
+        .badge {
+            font-weight: 500;
+        }
+
+        .btn {
+            font-weight: 500;
+        }
+        .text-secondary {
+            font-size: 0.9rem !important;
+        }   
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -25,7 +73,7 @@
             left: 0;
             top: 0;
             background: var(--primary-color);
-            color: var(--text-color);
+            color: var(--secondary-color);
             transition: all 0.3s;
             z-index: 1000;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -50,17 +98,24 @@
         .nav-link {
             color: var(--text-color);
             padding: 12px 20px;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
 
         .nav-link:hover {
-            background: var(--secondary-color);
-            color: #fff;
+            background: rgba(47, 44, 239, 0.1);  /* #2f2cef с прозрачностью */
+            color: var(--active-color);
         }
 
         .nav-link.active {
-            background: var(--accent-color);
+            background: var(--active-color);
             color: #fff;
+            box-shadow: 0 2px 4px rgba(47, 44, 239, 0.2);
+        }
+
+        /* Убираем предыдущие стили hover для неактивных элементов */
+        .nav-link:not(.active):hover {
+            background: rgba(47, 44, 239, 0.1);
+            color: var(--active-color);
         }
 
         .nav-link i {
@@ -69,7 +124,6 @@
 
         .profile-section {
             padding: 20px;
-            border-bottom: 1px solid var(--secondary-color);
         }
 
         .toggle-sidebar {
@@ -79,8 +133,8 @@
             z-index: 1001;
             transition: all 0.3s;
             background: var(--primary-color);
-            color: var(--text-color);
-            border: none;
+            color: var(--secondary-color);
+            border: 1px solid var(--neutral-3);
             padding: 10px;
             border-radius: 0 5px 5px 0;
         }
@@ -92,7 +146,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #dc3545;
+            color: var(--warning-color);
             border-radius: 6px;
             transition: all 0.2s ease;
             width: 100%;
@@ -100,8 +154,8 @@
         }
 
         .logout-nav:hover {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #ff6b6b;
+            background-color: rgba(246, 12, 240, 0.1);
+            color: var(--warning-color);
             transform: translateX(3px);
         }
 
@@ -124,13 +178,44 @@
         }
 
         .card {
+            background: var(--primary-color);
             border: none;
+            border-radius: 24px;  /* Делаем карточки ещё круглее */
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
+        /* Делаем более круглые края для всех вложенных элементов */
+        .list-group-item:first-child {
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+        }
+
+        .list-group-item:last-child {
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+        }
+
+        /* Обновляем цвета для бейджей транзакций */
+        .badge.bg-success {  /* Для доходов */
+            background-color: #18dccb !important;  /* Бирюзовый */
+        }
+
+        .badge.bg-danger {   /* Для расходов */
+            background-color: #f87f0e !important;  /* Оранжевый */
+        }
+
+        /* Обновляем стили для алертов с теми же цветами */
+        .alert-success {
+            background-color: rgba(24, 220, 203, 0.1);
+            border-color: #18dccb;
+            color: #18dccb;
+        }
+
+        .alert-danger {
+            background-color: rgba(248, 127, 14, 0.1);
+            border-color: #f87f0e;
+            color: #f87f0e;
         }
 
         @media (max-width: 767px) {
@@ -150,7 +235,44 @@
         .badge {
             padding: 0.5em 0.8em;
             font-weight: 500;
-            font-size: 0.85em;
+            background-color: var(--highlight-color);
+        }
+
+        /* Добавляем стили для выделенных ячеек */
+        .table tbody tr:hover {
+            background-color: rgba(47, 44, 239, 0.05) !important;  /* #2f2cef с прозрачностью */
+            cursor: pointer;
+        }
+
+        .table tbody tr.selected {
+            background-color: rgba(47, 44, 239, 0.1) !important;  /* #2f2cef с прозрачностью */
+            border-left: 3px solid #2f2cef;
+        }
+
+        /* Стили для мобильной версии */
+        @media (max-width: 767px) {
+            .transaction-row:hover {
+                background-color: rgba(47, 44, 239, 0.05) !important;
+            }
+            
+            .transaction-row.selected {
+                background-color: rgba(47, 44, 239, 0.1) !important;
+                border-left: 3px solid #2f2cef;
+            }
+        }
+
+        .nav-link, 
+        .card-title, 
+        .card-subtitle, 
+        h1, h2, h3, h4, h5, h6, 
+        p, 
+        .text-muted,
+        .small,
+        td,
+        th,
+        .profile-section h6,
+        .profile-section small {
+            color: var(--text-color);
         }
     </style>
 </head>
@@ -252,7 +374,7 @@
             <div class="row g-4">
                 <!-- Левая колонка -->
                 <div class="col-lg-8">
-                    <!-- Верхний ряд с основными показателями -->
+                    <!-- Верхний ряд  основными показателями -->
                     <div class="row g-4 mb-4">
                         <div class="col-md-6 col-lg-6">
                             <div class="card h-100">
@@ -283,7 +405,7 @@
                         </div>
                     </div>
 
-                    <!-- Диаграмма категорий -->
+                    <!-- Диаграмма кате��орий -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Расходы по категориям</h5>
@@ -495,8 +617,8 @@
                 datasets: [{
                     label: 'Баланс',
                     data: {{ balance_data|safe }},
-                    borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: '#18dccb',
+                    backgroundColor: 'rgba(24, 220, 203, 0.1)',
                     fill: true,
                     tension: 0.4,
                     borderWidth: 2,
@@ -541,7 +663,7 @@
                 labels: {{ week_dates|safe }},
                 datasets: [{
                     data: {{ weekly_expenses|safe }},
-                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    backgroundColor: 'rgba(248, 127, 14, 0.8)',
                     borderRadius: 4,
                     borderWidth: 0,
                     maxBarThickness: 10
@@ -594,25 +716,43 @@
             }
         });
         const categoryChart = new Chart(document.getElementById('categoryChart'), {
-            type: 'doughnut',
+            type: 'pie',
             data: {
                 labels: {{ expense_categories|safe }},
                 datasets: [{
                     data: {{ expense_distribution|safe }},
-                    backgroundColor: {{ category_colors|safe }},
-                    borderWidth: 1
+                    backgroundColor: [
+                        '#f60cf0',
+                        '#2f2cef',
+                        '#18dccb',
+                        '#c3c8dc',
+                        '#db98a8',
+                        '#94a0c5',
+                        '#363a58',
+                        '#bbb5b1'
+                    ],
+                    borderWidth: 0,          // Убираем обводку
+                    offset: [10, 12, 14, 16, 18, 20, 22, 24],
+                    hoverOffset: 30,
+                    borderRadius: 20,
+                    spacing: 10
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: 20
+                },
                 plugins: {
                     legend: {
                         position: 'right',
                         labels: {
                             padding: 20,
+                            color: '#343C6A',  // Цвет текста в легенде
                             font: {
-                                size: 12
+                                size: 13,
+                                weight: 'bold'
                             }
                         }
                     },
@@ -630,8 +770,7 @@
                             }
                         }
                     }
-                },
-                cutout: '60%'
+                }
             }
         });
 
@@ -668,10 +807,24 @@
 
         // Создаем графики с случайными данными
         document.addEventListener('DOMContentLoaded', function() {
-            createMiniChart('usdChart', [95, 94, 96, 95, 97, 96], '#0d6efd');
-            createMiniChart('eurChart', [103, 102, 104, 103, 105, 104], '#dc3545');
-            createMiniChart('cnyChart', [13.2, 13.3, 13.4, 13.3, 13.5, 13.4], '#198754');
-            createMiniChart('btcChart', [4200000, 4250000, 4300000, 4280000, 4350000, 4325000], '#ffc107');
+            createMiniChart('usdChart', [95, 94, 96, 95, 97, 96], '#f87f0e');
+            createMiniChart('eurChart', [103, 102, 104, 103, 105, 104], '#2f2cef');
+            createMiniChart('cnyChart', [13.2, 13.3, 13.4, 13.3, 13.5, 13.4], '#18dccb');
+            createMiniChart('btcChart', [4200000, 4250000, 4300000, 4280000, 4350000, 4325000], '#f60cf0');
+        });
+
+        // Добавляем после существующих скриптов
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableRows = document.querySelectorAll('.table tbody tr, .transaction-row');
+            
+            tableRows.forEach(row => {
+                row.addEventListener('click', function() {
+                    // Убираем выделение со всех строк
+                    tableRows.forEach(r => r.classList.remove('selected'));
+                    // Добавляем выделение на кликнутую строку
+                    this.classList.add('selected');
+                });
+            });
         });
     </script>
 </body>

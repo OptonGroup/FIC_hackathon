@@ -9,6 +9,101 @@
     <link rel="icon" type="image/x-icon" href="{% static 'img/fin-viision-2.png' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        :root {
+            --primary-color: #f2f3fb;      /* Светлый фон */
+            --text-color: #363a58;         /* Основной текст */
+            --accent-color: #2f2cef;       /* Акцент (синий) */
+            --highlight-color: #18dccb;    /* Дополнительный акцент */
+            --link-color: #2f2cef;         /* Для ссылок */
+        }
+
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: white !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand, .nav-link {
+            color: var(--text-color) !important;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color) !important;
+        }
+
+        /* Стили для форм входа/регистрации */
+        .card {
+            background-color: white;
+            border: none;
+            border-radius: 24px;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+        }
+
+        .form-label {
+            color: var(--text-color) !important;
+            font-weight: 500;
+        }
+
+        .input-group-text {
+            background-color: white;
+            border-color: #e0e0e0;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            background-color: white;
+            border-color: #e0e0e0;
+            color: var(--text-color);
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(47, 44, 239, 0.25);
+        }
+
+        .btn-lg {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            padding: 12px 24px;
+        }
+
+        .btn-lg:hover {
+            background: #2826d4;  /* Затемненный синий для ховера */
+            color: white;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #d00bd2;
+        }
+
+        .alert-success {
+            background-color: rgba(24, 220, 203, 0.1);
+            border-color: var(--highlight-color);
+            color: var(--highlight-color);
+        }
+
+        .alert-danger {
+            background-color: rgba(246, 12, 240, 0.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+    </style>
 </head>
 </head>
 <body>

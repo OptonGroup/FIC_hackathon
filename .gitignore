@@ -7,3 +7,5 @@
 *.pyz
 *.pyw
 db.sqlite3
+nohup.out
+*.rar
