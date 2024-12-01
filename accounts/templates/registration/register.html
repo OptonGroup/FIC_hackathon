@@ -30,7 +30,7 @@
                                    id="{{ field.id_for_label }}"
                                    class="form-control form-control-lg gsap-fade-in {% if field.errors %}is-invalid{% endif %}"
                                    style="background-color: #373b3e; border-color: #454d55; color: #e9ecef; border-left: none;"
-                                   placeholder="{% if field.html_name == 'username' %}Введите имя пользователя{% elif field.html_name == 'password1' %}Введите пароль{% else %}Подтвердите пароль{% endif %}"
+                                   placeholder="{% if field.html_name == 'username' %}Введите имя пользователя{% elif field.html_name == 'password1' %}Введите пароль{% elif field.html_name == 'email' %}Введите почту{% else %}Подтвердите пароль{% endif %}"
                                    {% if field.field.required %}required{% endif %}>
                         </div>
                         {% if field.errors %}
