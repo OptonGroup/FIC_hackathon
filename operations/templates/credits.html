@@ -221,7 +221,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const progressBars = document.querySelectorAll('.progress-bar');
     
     progressBars.forEach(function(bar) {
-        const progress = bar.getAttribute('data-progress');
+        progress = bar.getAttribute('data-progress');
+        progress = progress.replace(',', '.');
+
         bar.style.width = '0%';
         
         setTimeout(function() {

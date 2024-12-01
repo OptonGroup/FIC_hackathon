@@ -197,7 +197,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Для каждого прогресс-бара
     progressBars.forEach(function(bar) {
         // Получить целевой процент из data-атрибута
-        const progress = bar.getAttribute('data-progress');
+        progress = bar.getAttribute('aria-valuenow');
+progress = progress.replace(',', '.');
+
         
         // Установить начальную ширину 0%
         bar.style.width = '0%';
