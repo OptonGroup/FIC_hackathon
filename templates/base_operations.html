@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru">
     {% load static %}
+    {% load custom_filters %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -163,61 +164,42 @@
             // Функция для получения информации об аккаунте
             async function getAccountInfo() {
                 try {
-                    // Проверяем наличие информации
-                    const hasBalance = Boolean('{{ user.profile.balance }}');
-                    const hasCredits = Boolean('{% if user.credits.all %}true{% endif %}');
-                    const hasTargets = Boolean('{% if user.targets.all %}true{% endif %}');
-                    const hasRegularPayments = Boolean('{% if user.regular_payments.all %}true{% endif %}');
-                    
-                    // Если информации недост��ч��о
-                    if (!hasBalance && !hasCredits && !hasTargets && !hasRegularPayments) {
-                        addMessage(`
-                            Похоже, у вас пока недостаточно информации для полноценного финансового анализа. 
-                            Для получения персонализированных рекомендаций, пожалуйста:
-                            
-                            1. Добавьте информацию о вашем текущем балансе в профиле
-                            2. Укажите ваши финансовые цели в разделе "Цели"
-                            3. Добавьте информацию о регулярных платежах
-                            4. Если есть кредиты, внесите их в соответствующий раздел
-                            
-                            После добавления информации я смогу предложить эффективную стратегию накопления, учитывающую вашу конкретную ситуацию.
-                        `);
-                        return;
-                    }
-
                     const message = `
-                        Проанализируйте мою финансовую ситуацию и предложите стратегию накопления:
-                        
-                        ${hasBalance ? `Текущий баланс: {{ user.profile.balance }} руб.` : ''}
-                        
-                        ${hasCredits ? `
-                        Кредиты:
-                        {% for credit in user.credits.all %}
-                        - {{ credit.name }}: {{ credit.amount }} руб. (Ставка: {{ credit.interest_rate }}%)
+                        Вы - финансовый консультант. Дайте краткие рекомендации по накоплению (до 1000 символов).
+
+                        АНАЛИЗ ДОХОДОВ И РАСХОДОВ:
+                        (за период {{ report_period }})
+
+                        Доходы за месяц: {{ total_income|floatformat:"0" }} руб.
+                        Расходы за месяц: {{ total_expenses|floatformat:"0" }} руб.
+                        Текущий баланс: {{ total_balance|floatformat:"0" }} руб.
+
+                        ОСНОВНЫЕ КАТЕГОРИИ РАСХОДОВ:
+                        {% for category in expense_categories_data %}
+                        - {{ category.name }}: {{ category.amount|floatformat:"0" }} руб.
                         {% endfor %}
-                        ` : ''}
-                        
-                        ${hasTargets ? `
-                        Финансовые цели:
-                        {% for target in user.targets.all %}
-                        - {{ target.name }}: {{ target.target_amount }} руб. (Накоплено: {{ target.current_amount }} руб.)
+
+                        РЕГУЛЯРНЫЕ ПЛАТЕЖИ:
+                        {% for payment in upcoming_payments %}
+                        - {{ payment.name }}: {{ payment.amount|floatformat:"0" }} руб. ({{ payment.frequency }})
                         {% endfor %}
-                        ` : ''}
-                        
-                        ${hasRegularPayments ? `
-                        Регулярные платежи:
-                        {% for payment in user.regular_payments.all %}
-                        - {{ payment.name }}: {{ payment.amount }} руб. ({{ payment.frequency }})
+
+                        АКТИВНЫЕ КРЕДИТЫ:
+                        {% for credit in active_credits %}
+                        - {{ credit.name }}: {{ credit.amount|floatformat:"0" }} руб. ({{ credit.interest_rate }}%)
                         {% endfor %}
-                        ` : ''}
-                        
-                        ${!hasBalance ? 'Информация о текущем балансе отсутствует.' : ''}
-                        ${!hasCredits ? 'Информация о кредитах отсутствует.' : ''}
-                        ${!hasTargets ? 'Информация о финансовых целях отсутствует.' : ''}
-                        ${!hasRegularPayments ? 'Информация о регулярных платежах отсутствует.' : ''}
-                        
-                        Пожалуйста, предложите эффективную стратегию накопления с учетом имеющейся информации о финансовом положении.
+
+                        ФИНАНСОВЫЕ ЦЕЛИ:
+                        {% for target in active_targets %}
+                        - {{ target.name }}: {{ target.target_amount|floatformat:"0" }} руб. (накоплено: {{ target.current_amount|floatformat:"0" }} руб.)
+                        {% endfor %}
+
+                        На основе этих данных, пожалуйста:
+                        1. Укажите оптимальную сумму для накопления
+                        2. Предложите 2-3 конкретных способа сократить расходы
+                        3. Дайте рекомендации по увеличению доходов
                     `;
+                    console.log(message);
                     
                     addLoadingMessage();
                     const response = await fetch(`https://geminiapific.pythonanywhere.com/generate_content?prompt=${encodeURIComponent(message)}`);
@@ -345,7 +327,7 @@
             this.classList.toggle('moved');
         });
 
-        // Адаптивное поведение для мобильных устройств
+        // Адаптивное поведение для мбильных устройств
         function checkWidth() {
             if (window.innerWidth <= 768) {
                 document.getElementById('sidebar').classList.add('collapsed');
@@ -359,7 +341,7 @@
         }
 
         window.addEventListener('resize', checkWidth);
-        checkWidth(); // Проверка при загрузке страницы
+        checkWidth(); // Проверка ��ри загрузке страницы
     </script>
     {% block extra_scripts %}{% endblock %}
 </body>
