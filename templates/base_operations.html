@@ -7,119 +7,128 @@
     <title>FinVision</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'img/fin-viision-2.png' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --sidebar-width: 280px;
-            --primary-color: #343a40;
-            --secondary-color: #495057;
-            --accent-color: #6c757d;
-            --text-color: #f8f9fa;
-        }
-
-        .sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background: var(--primary-color);
-            color: var(--text-color);
-            transition: all 0.3s;
-            z-index: 1000;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.collapsed {
-            left: calc(-1 * var(--sidebar-width));
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            transition: all 0.3s;
-            background: #f8f9fa;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        .nav-link {
-            color: var(--text-color);
-            padding: 12px 20px;
-            transition: all 0.2s;
-        }
-
-        .nav-link:hover {
-            background: var(--secondary-color);
-            color: #fff;
-        }
-
-        .nav-link.active {
-            background: var(--accent-color);
-            color: #fff;
-        }
-
-        .nav-link i {
-            margin-right: 10px;
-        }
-
-        .profile-section {
-            padding: 20px;
-            border-bottom: 1px solid var(--secondary-color);
-        }
-
-        .toggle-sidebar {
-            position: fixed;
-            left: var(--sidebar-width);
-            top: 20px;
-            z-index: 1001;
-            transition: all 0.3s;
-            background: var(--primary-color);
-            color: var(--text-color);
-            border: none;
-            padding: 10px;
-            border-radius: 0 5px 5px 0;
-        }
-
-        .toggle-sidebar.moved {
-            left: 0;
-        }
-
-        .logout-nav {
-            padding: 8px 12px;
-            margin-top: 10px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #dc3545;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            width: 100%;
-            
-        }
-
-        .logout-nav:hover {
-            background-color: rgba(220, 53, 69, 0.1);
-            color: #ff6b6b;
-            transform: translateX(3px);
-        }
-
-        .bi-box-arrow-right {
-            font-size: 1.2em;
-            transition: transform 0.2s ease;
-        }
-
-        .logout-nav:hover .bi-box-arrow-right {
-            transform: translateX(2px);
-        }
-    </style>
 </head>
 <body>
+    <div class="ai-assistant-popup" id="aiAssistantPopup">
+        <div class="ai-assistant-header">
+            <span>AI Ассистент</span>
+            <div class="ai-controls">
+                <button class="minimize-btn" id="minimizeAI">_</button>
+                <button class="close-btn" id="closeAI">×</button>
+            </div>
+        </div>
+        <div class="ai-assistant-content">
+            <div class="ai-messages" id="aiMessages">
+                <!-- Сообщения будут добавляться здесь динамически -->
+                <div class="ai-message">
+                    <i class="bi bi-robot"></i>
+                    <div class="message-content">
+                        Здравствуйте! Я ваш AI-ассистент. Я могу помочь вам с управлением финансами и дать рекомендации по улучшению вашего финансового положения.
+                    </div>
+                </div>
+            </div>
+            <div class="ai-input-container">
+                <input type="text" id="aiInput" placeholder="Введите ваш вопрос...">
+                <button id="aiSendButton">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiInput = document.getElementById('aiInput');
+            const aiSendButton = document.getElementById('aiSendButton');
+            const aiMessages = document.getElementById('aiMessages');
+            
+            function addMessage(message, isUser = false) {
+                const messageHTML = `
+                    <div class="ai-message ${isUser ? 'user' : ''}">
+                        <i class="bi ${isUser ? 'bi-person' : 'bi-robot'}"></i>
+                        <div class="message-content">${message}</div>
+                    </div>
+                `;
+                aiMessages.insertAdjacentHTML('beforeend', messageHTML);
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }
+            
+            function addLoadingMessage() {
+                const loadingHTML = `
+                    <div class="ai-message loading" id="loadingMessage">
+                        <i class="bi bi-robot"></i>
+                        <div class="message-content">
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                            <div class="loading-dot"></div>
+                        </div>
+                    </div>
+                `;
+                aiMessages.insertAdjacentHTML('beforeend', loadingHTML);
+                aiMessages.scrollTop = aiMessages.scrollHeight;
+            }
+            
+            function removeLoadingMessage() {
+                const loadingMessage = document.getElementById('loadingMessage');
+                if (loadingMessage) {
+                    loadingMessage.remove();
+                }
+            }
+            
+            async function sendMessage(message) {
+                try {
+                    addLoadingMessage();
+                    const response = await fetch(`https://geminiapific.pythonanywhere.com/generate_content?prompt=${encodeURIComponent(message)}`);
+                    const data = await response.json();
+                    removeLoadingMessage();
+                    addMessage(data.text);
+                } catch (error) {
+                    removeLoadingMessage();
+                    addMessage('Извините, произошла ошибка при обработке вашего запроса.');
+                    console.error('Error:', error);
+                }
+            }
+            
+            function handleSendMessage() {
+                const message = aiInput.value.trim();
+                if (message) {
+                    addMessage(message, true);
+                    aiInput.value = '';
+                    sendMessage(message);
+                }
+            }
+            
+            aiSendButton.addEventListener('click', handleSendMessage);
+            
+            aiInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleSendMessage();
+                }
+            });
+            
+            // Existing AI assistant controls
+            const popup = document.getElementById('aiAssistantPopup');
+            const minimizeBtn = document.getElementById('minimizeAI');
+            const closeBtn = document.getElementById('closeAI');
+
+            minimizeBtn.addEventListener('click', function() {
+                popup.classList.toggle('minimized');
+                if (popup.classList.contains('minimized')) {
+                    minimizeBtn.textContent = '□';
+                } else {
+                    minimizeBtn.textContent = '_';
+                }
+            });
+
+            closeBtn.addEventListener('click', function() {
+                popup.classList.add('hidden');
+            });
+        });
+    </script>
+
     {% if messages %}
         <div class="message-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
             {% for message in messages %}
