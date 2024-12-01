@@ -1,0 +1,211 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Регулярные платежи</h2>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить платеж
+        </button>
+    </div>
+
+    <!-- Сетка платежей -->
+    <div class="row g-4">
+        {% for payment in regular_payments %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ payment.name }}</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-dark p-0" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editPaymentModal{{ payment.id }}">
+                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deletePaymentModal{{ payment.id }}">
+                                        <i class="bi bi-trash me-2"></i>Удалить
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Детали платежа -->
+                    <div class="mb-3">
+                        <div class="p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3 class="mb-0">{{ payment.amount|floatformat:2 }} ₽</h3>
+                                <span class="badge bg-primary">{{ payment.get_frequency_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительная информация -->
+                    <div class="mb-2">
+                        <i class="bi bi-calendar-check me-2 text-muted"></i>
+                        <small class="text-muted">Следующий платеж: {{ payment.next_payment_date|date:"d.m.Y" }}</small>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-tag me-2 text-muted"></i>
+                        <small class="text-muted">{{ payment.category.name }}</small>
+                    </div>
+                    {% if payment.description %}
+                    <div>
+                        <i class="bi bi-info-circle me-2 text-muted"></i>
+                        <small class="text-muted">{{ payment.description }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div class="modal fade" id="editPaymentModal{{ payment.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактировать платеж</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'operations:edit_regular_payment' payment.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Название</label>
+                                <input type="text" class="form-control" name="name" value="{{ payment.name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Сумма</label>
+                                <input type="number" class="form-control" name="amount" value="{{ payment.amount }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Категория</label>
+                                <select class="form-select" name="category" required>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if category.id == payment.category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Частота</label>
+                                <select class="form-select" name="frequency" required>
+                                    <option value="weekly" {% if payment.frequency == 'weekly' %}selected{% endif %}>Еженедельно</option>
+                                    <option value="monthly" {% if payment.frequency == 'monthly' %}selected{% endif %}>Ежемесячно</option>
+                                    <option value="yearly" {% if payment.frequency == 'yearly' %}selected{% endif %}>Ежегодно</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Следующий платеж</label>
+                                <input type="date" class="form-control" name="next_payment_date" value="{{ payment.next_payment_date|date:'Y-m-d' }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Описание</label>
+                                <textarea class="form-control" name="description" rows="2">{{ payment.description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div class="modal fade" id="deletePaymentModal{{ payment.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удалить платеж</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить регулярный платеж "{{ payment.name }}"?</p>
+                        <p class="mb-0"><strong>Сумма:</strong> {{ payment.amount|floatformat:2 }} ₽</p>
+                        <p class="mb-0"><strong>Частота:</strong> {{ payment.get_frequency_display }}</p>
+                    </div>
+                    <form method="post" action="{% url 'operations:delete_regular_payment' payment.id %}">
+                        {% csrf_token %}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-arrow-repeat display-1 text-secondary mb-3"></i>
+                <h4 class="text-secondary">У вас пока нет регулярных платежей</h4>
+                <p class="text-muted">Нажмите "Добавить платеж", чтобы создать регулярный платеж</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Модальное окно добавления -->
+    <div class="modal fade" id="addPaymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить регулярный платеж</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'operations:add_regular_payment' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Название</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сумма</label>
+                            <input type="number" class="form-control" name="amount" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Категория</label>
+                            <select class="form-select" name="category" required>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Частота</label>
+                            <select class="form-select" name="frequency" required>
+                                <option value="weekly">Еженедельно</option>
+                                <option value="monthly">Ежемесячно</option>
+                                <option value="yearly">Ежегодно</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Следующий платеж</label>
+                            <input type="date" class="form-control" name="next_payment_date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Описание</label>
+                            <textarea class="form-control" name="description" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-dark">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

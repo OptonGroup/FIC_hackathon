@@ -1,0 +1,213 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Финансовые цели</h2>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addTargetModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить цель
+        </button>
+    </div>
+
+    <!-- Сетка целей -->
+    <div class="row g-4">
+        {% for target in targets %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ target.name }}</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-dark p-0" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editTargetModal{{ target.id }}">
+                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteTargetModal{{ target.id }}">
+                                        <i class="bi bi-trash me-2"></i>Удалить
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Прогресс -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс</small>
+                            <small class="text-muted">{{ target.get_progress_percentage }}%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ target.get_status }}" 
+                                 role="progressbar"
+                                 style="width: {{ target.get_progress_percentage }}%"
+                                 aria-valuenow="{{ target.get_progress_percentage }}"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Детали -->
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    <small class="text-muted d-block">Накоплено</small>
+                                    <strong>{{ target.current_amount|floatformat:2 }} ₽</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    <small class="text-muted d-block">Цель</small>
+                                    <strong>{{ target.target_amount|floatformat:2 }} ₽</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-calendar me-2 text-muted"></i>
+                        <small class="text-muted">Срок: {{ target.deadline|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div class="modal fade" id="editTargetModal{{ target.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактировать цель</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'operations:edit_target' target.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Название</label>
+                                <input type="text" class="form-control" name="name" value="{{ target.name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Целевая сумма</label>
+                                <input type="number" class="form-control" name="target_amount" value="{{ target.target_amount }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Текущая сумма</label>
+                                <input type="number" class="form-control" name="current_amount" value="{{ target.current_amount }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Срок достижения</label>
+                                <input type="date" class="form-control" name="deadline" value="{{ target.deadline|date:'Y-m-d' }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div class="modal fade" id="deleteTargetModal{{ target.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удалить цель</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить цель "{{ target.name }}"?</p>
+                        <p class="mb-0"><strong>Прогресс:</strong> {{ target.current_amount|floatformat:2 }} / {{ target.target_amount|floatformat:2 }} ₽</p>
+                    </div>
+                    <form method="post" action="{% url 'operations:delete_target' target.id %}">
+                        {% csrf_token %}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-piggy-bank display-1 text-secondary mb-3"></i>
+                <h4 class="text-secondary">У вас пока нет финансовых целей</h4>
+                <p class="text-muted">Нажмите "Добавить цель", чтобы начать планировать свои накопления</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Модальное окно добавления -->
+    <div class="modal fade" id="addTargetModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить цель</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'operations:add_target' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Название</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Целевая сумма</label>
+                            <input type="number" class="form-control" name="target_amount" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Текущая сумма</label>
+                            <input type="number" class="form-control" name="current_amount" value="0" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Срок достижения</label>
+                            <input type="date" class="form-control" name="deadline" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-dark">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Найти все прогресс-бары
+    const progressBars = document.querySelectorAll('.progress-bar');
+    
+    // Для каждого прогресс-бара
+    progressBars.forEach(function(bar) {
+        // Получить целевой процент из data-атрибута
+        const progress = bar.getAttribute('data-progress');
+        
+        // Установить начальную ширину 0%
+        bar.style.width = '0%';
+        
+        // Через небольшую задержку установить реальный процент
+        setTimeout(function() {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = progress + '%';
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

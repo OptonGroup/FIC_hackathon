@@ -1,0 +1,291 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Транзакции</h2>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addTransactionModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить транзакцию
+        </button>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3" id="filterForm">
+                <div class="col-md-3">
+                    <label class="form-label">Тип</label>
+                    <select class="form-select" name="type" id="typeFilter">
+                        <option value="">Все типы</option>
+                        <option value="income" {% if selected_type == 'income' %}selected{% endif %}>Доход</option>
+                        <option value="expense" {% if selected_type == 'expense' %}selected{% endif %}>Расход</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Категория</label>
+                    <select class="form-select" name="category" id="categoryFilter">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if selected_category == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Дата от</label>
+                    <input type="date" class="form-control" name="date_from" id="dateFromFilter" value="{{ selected_date_from }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Дата до</label>
+                    <input type="date" class="form-control" name="date_to" id="dateToFilter" value="{{ selected_date_to }}">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-funnel me-2"></i>Применить фильтры
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="resetFilters">
+                        <i class="bi bi-x-circle me-2"></i>Сбросить
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Список транзакций -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Дата</th>
+                            <th>Тип</th>
+                            <th>Категория</th>
+                            <th>Описание</th>
+                            <th>Сумма</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ transaction.date|date:"d.m.Y" }}</td>
+                            <td>
+                                <span class="badge {% if transaction.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ transaction.get_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">
+                                    <i class="bi {{ transaction.category.icon }} me-1"></i>
+                                    {{ transaction.category.name }}
+                                </span>
+                            </td>
+                            <td>{{ transaction.description }}</td>
+                            <td class="{% if transaction.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                                {% if transaction.type == 'income' %}+{% else %}-{% endif %}{{ transaction.amount }} ₽
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editTransactionModal{{ transaction.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#deleteTransactionModal{{ transaction.id }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Модальное окно редактирования -->
+                        <div class="modal fade" id="editTransactionModal{{ transaction.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Редактировать транзакцию</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'operations:edit_transaction' transaction.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Тип</label>
+                                                <select class="form-select transaction-type" name="type" required>
+                                                    <option value="income" {% if transaction.type == 'income' %}selected{% endif %}>Доход</option>
+                                                    <option value="expense" {% if transaction.type == 'expense' %}selected{% endif %}>Расход</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Категория</label>
+                                                <select class="form-select category-select" name="category" required>
+                                                    {% for category in categories %}
+                                                    <option value="{{ category.id }}" 
+                                                            data-type="{{ category.type }}"
+                                                            {% if category.id == transaction.category.id %}selected{% endif %}>
+                                                        {{ category.name }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Сумма</label>
+                                                <input type="number" class="form-control" name="amount" value="{{ transaction.amount }}" required step="0.01">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Описание</label>
+                                                <textarea class="form-control" name="description" rows="3">{{ transaction.description }}</textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Дата</label>
+                                                <input type="date" class="form-control" name="date" value="{{ transaction.date|date:'Y-m-d' }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                                            <button type="submit" class="btn btn-dark">Сохранить</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Модальное окно удаления -->
+                        <div class="modal fade" id="deleteTransactionModal{{ transaction.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Удалить транзакцию</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Вы уверены, что хотите удалить эту транзакцию?</p>
+                                        <p class="mb-0"><strong>Дата:</strong> {{ transaction.date|date:"d.m.Y" }}</p>
+                                        <p class="mb-0"><strong>Тип:</strong> {{ transaction.get_type_display }}</p>
+                                        <p class="mb-0"><strong>Сумма:</strong> {{ transaction.amount }} ₽</p>
+                                    </div>
+                                    <form method="post" action="{% url 'operations:delete_transaction' transaction.id %}">
+                                        {% csrf_token %}
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                                            <button type="submit" class="btn btn-dark">Удалить</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <i class="bi bi-inbox display-4 d-block mb-2 text-secondary"></i>
+                                Транзакции не найдены
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления транзакции -->
+<div class="modal fade" id="addTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить транзакцию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'operations:add_transaction' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Тип</label>
+                        <select class="form-select" name="type" id="transactionType" required>
+                            <option value="income">Доход</option>
+                            <option value="expense">Расход</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Категория</label>
+                        <select class="form-select" name="category" id="categorySelect" required>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    data-type="{{ category.type }}"
+                                    {% if category.type != 'both' and category.type != 'income' %}style="display:none"{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Сумма</label>
+                        <input type="number" class="form-control" name="amount" required step="0.01">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-control" name="date" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработчик кнопки сброса
+    document.getElementById('resetFilters').addEventListener('click', function() {
+        // Очищаем все поля фильтров
+        document.getElementById('typeFilter').value = '';
+        document.getElementById('categoryFilter').value = '';
+        document.getElementById('dateFromFilter').value = '';
+        document.getElementById('dateToFilter').value = '';
+        
+        // Автоматически отправляем форму
+        document.getElementById('filterForm').submit();
+    });
+    
+    // Остальной JavaScript код для работы с категориями
+    const transactionType = document.getElementById('transactionType');
+    const categorySelect = document.getElementById('categorySelect');
+    
+    function updateCategories() {
+        const selectedType = transactionType.value;
+        const options = categorySelect.options;
+        
+        for (let option of options) {
+            const categoryType = option.dataset.type;
+            if (categoryType === 'both' || categoryType === selectedType) {
+                option.style.display = '';
+            } else {
+                option.style.display = 'none';
+            }
+        }
+        
+        // Выбираем первую видимую опцию
+        for (let option of options) {
+            if (option.style.display !== 'none') {
+                categorySelect.value = option.value;
+                break;
+            }
+        }
+    }
+    
+    if (transactionType && categorySelect) {
+        transactionType.addEventListener('change', updateCategories);
+        updateCategories();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinVision</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary-color: #343a40;
+            --secondary-color: #495057;
+            --accent-color: #6c757d;
+            --text-color: #f8f9fa;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--primary-color);
+            color: var(--text-color);
+            transition: all 0.3s;
+            z-index: 1000;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            left: calc(-1 * var(--sidebar-width));
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            padding: 12px 20px;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--secondary-color);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        .nav-link i {
+            margin-right: 10px;
+        }
+
+        .profile-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--secondary-color);
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            left: var(--sidebar-width);
+            top: 20px;
+            z-index: 1001;
+            transition: all 0.3s;
+            background: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 10px;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .toggle-sidebar.moved {
+            left: 0;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                left: calc(-1 * var(--sidebar-width));
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .toggle-sidebar {
+                left: 0;
+                top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Боковая панель -->
+    <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+            <div class="d-flex align-items-center">
+                <img src="https://via.placeholder.com/50" class="rounded-circle me-3">
+                <div>
+                    <h6 class="mb-0">{{ user.username }}</h6>
+                    <small class="text-muted">Premium аккаунт</small>
+                </div>
+            </div>
+        </div>
+
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+                <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-house-door"></i> Главная
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+                    <i class="bi bi-credit-card"></i> Транзакции
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
+                    <i class="bi bi-piggy-bank"></i> Цели
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
+                    <i class="bi bi-cash-coin"></i> Кредиты
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
+                    <i class="bi bi-arrow-repeat"></i> Регулярные платежи
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Кнопка переключения боковой панели -->
+    <button class="btn toggle-sidebar" id="toggleSidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Основной контент -->
+    <div class="main-content" id="mainContent">
+        <div class="container-fluid">
+            <div class="row g-4">
+                <!-- Левая колонка -->
+                <div class="col-lg-8">
+                    <!-- Верхний ряд с основными показателями -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div>
+                                        <h6 class="card-subtitle mb-2 text-muted">Общий баланс</h6>
+                                        <h3 class="card-title mb-3">{{ total_balance|floatformat:2 }} ₽</h3>
+                                    </div>
+                                    <div class="mt-auto" style="height: 80px;">
+                                        <canvas id="balanceChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div>
+                                        <h6 class="card-subtitle mb-2 text-muted">Расходы за неделю</h6>
+                                        <h3 class="card-title mb-3">{{ monthly_expenses|floatformat:2 }} ₽</h3>
+                                    </div>
+                                    <div class="mt-auto" style="height: 80px;">
+                                        <canvas id="expensesChart"></canvas>
+                                    </div>
+                                    <div class="d-flex align-items-center mt-2">
+                                        {% if expense_change > 0 %}
+                                            <i class="bi bi-arrow-up-circle text-danger me-2"></i>
+                                            <span class="text-danger">+{{ expense_change }}%</span>
+                                        {% else %}
+                                            <i class="bi bi-arrow-down-circle text-success me-2"></i>
+                                            <span class="text-success">{{ expense_change }}%</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Диаграмма категорий -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Расходы по категориям</h5>
+                            <div style="height: 300px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Последние транзакции -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Последние транзакции</h5>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Тип</th>
+                                            <th>Сумма</th>
+                                            <th>Категория</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for transaction in recent_transactions %}
+                                        <tr>
+                                            <td>{{ transaction.date }}</td>
+                                            <td>{{ transaction.get_type_display }}</td>
+                                            <td>{{ transaction.amount }} ₽</td>
+                                            <td>{{ transaction.category }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Правая колонка -->
+                <div class="col-lg-4">
+                    <!-- Кредиты и цели -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6 col-lg-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Активные кредиты</h6>
+                                    <h3 class="card-title">{{ active_credits.count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Активные цели</h6>
+                                    <h3 class="card-title">{{ active_targets.count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ближайшие платежи -->
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Ближайшие платежи</h5>
+                            <ul class="list-group list-group-flush">
+                                {% for payment in upcoming_payments %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ payment.name }}
+                                    <span class="badge bg-primary rounded-pill">{{ payment.amount }} ₽</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('toggleSidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            document.getElementById('mainContent').classList.toggle('expanded');
+            this.classList.toggle('moved');
+        });
+
+        // Адаптивное поведение для мобильных устройств
+        function checkWidth() {
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.getElementById('mainContent').classList.add('expanded');
+                document.getElementById('toggleSidebar').classList.add('moved');
+            } else {
+                document.getElementById('sidebar').classList.remove('collapsed');
+                document.getElementById('mainContent').classList.remove('expanded');
+                document.getElementById('toggleSidebar').classList.remove('moved');
+            }
+        }
+
+        window.addEventListener('resize', checkWidth);
+        checkWidth(); // Проверка при загрузке страницы
+        // Инициализация графиков
+        const balanceChart = new Chart(document.getElementById('balanceChart'), {
+            type: 'line',
+            data: {
+                labels: {{ months|safe }},
+                datasets: [{
+                    label: 'Баланс',
+                    data: {{ balance_data|safe }},
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: true
+                    }
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        display: false,
+                        grid: {
+                            display: false
+                        },
+                        beginAtZero: true
+                    }
+                },
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000
+                }
+            }
+        });
+
+        const expensesChart = new Chart(document.getElementById('expensesChart'), {
+            type: 'bar',
+            data: {
+                labels: {{ week_dates|safe }},
+                datasets: [{
+                    data: {{ weekly_expenses|safe }},
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    borderRadius: 4,
+                    borderWidth: 0,
+                    maxBarThickness: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return new Intl.NumberFormat('ru-RU', {
+                                    style: 'currency',
+                                    currency: 'RUB'
+                                }).format(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        display: true,
+                        grid: {
+                            display: true
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('ru-RU', {
+                                    style: 'currency',
+                                    currency: 'RUB',
+                                    maximumFractionDigits: 0
+                                }).format(value);
+                            }
+                        }
+                    }
+                },
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1000
+                }
+            }
+        });
+        const categoryChart = new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ expense_categories|safe }},
+                datasets: [{
+                    data: {{ expense_distribution|safe }},
+                    backgroundColor: {{ category_colors|safe }},
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                let value = context.parsed;
+                                let sum = context.dataset.data.reduce((a, b) => a + b, 0);
+                                let percentage = Math.round((value * 100) / sum);
+                                return `${label}: ${new Intl.NumberFormat('ru-RU', {
+                                    style: 'currency',
+                                    currency: 'RUB'
+                                }).format(value)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    </script>
+</body>
+</html>

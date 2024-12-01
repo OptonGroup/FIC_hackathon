@@ -1,0 +1,235 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Заголовок и кнопка добавления -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Кредиты</h2>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addCreditModal">
+            <i class="bi bi-plus-lg me-2"></i>Добавить кредит
+        </button>
+    </div>
+
+    <!-- Сетка кредитов -->
+    <div class="row g-4">
+        {% for credit in credits %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ credit.name }}</h5>
+                        <div class="dropdown">
+                            <button class="btn btn-link text-dark p-0" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <button class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editCreditModal{{ credit.id }}">
+                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteCreditModal{{ credit.id }}">
+                                        <i class="bi bi-trash me-2"></i>Удалить
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Прогресс выплаты -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">Прогресс выплаты</small>
+                            <small class="text-muted">{{ credit.get_progress_percentage }}%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                                role="progressbar" 
+                                style="width: 0%" 
+                                data-progress="{{ credit.get_progress_percentage }}" 
+                                aria-valuenow="{{ credit.get_progress_percentage }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Детали кредита -->
+                    <div class="mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    <small class="text-muted d-block">Выплачено</small>
+                                    <strong>{{ credit.paid_amount|floatformat:2 }} ₽</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 border rounded">
+                                    <small class="text-muted d-block">Сумма кредита</small>
+                                    <strong>{{ credit.total_amount|floatformat:2 }} ₽</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Дополнительная информация -->
+                    <div class="mb-2">
+                        <i class="bi bi-bank me-2 text-muted"></i>
+                        <small class="text-muted">{{ credit.bank }}</small>
+                    </div>
+                    <div class="mb-2">
+                        <i class="bi bi-percent me-2 text-muted"></i>
+                        <small class="text-muted">Ставка: {{ credit.interest_rate }}%</small>
+                    </div>
+                    <div>
+                        <i class="bi bi-calendar me-2 text-muted"></i>
+                        <small class="text-muted">Срок: {{ credit.end_date|date:"d.m.Y" }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно редактирования -->
+        <div class="modal fade" id="editCreditModal{{ credit.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Редактировать кредит</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'operations:edit_credit' credit.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Название</label>
+                                <input type="text" class="form-control" name="name" value="{{ credit.name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Банк</label>
+                                <input type="text" class="form-control" name="bank" value="{{ credit.bank }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Сумма кредита</label>
+                                <input type="number" class="form-control" name="total_amount" value="{{ credit.total_amount }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Выплачено</label>
+                                <input type="number" class="form-control" name="paid_amount" value="{{ credit.paid_amount }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Процентная ставка</label>
+                                <input type="number" class="form-control" name="interest_rate" value="{{ credit.interest_rate }}" required step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Дата окончания</label>
+                                <input type="date" class="form-control" name="end_date" value="{{ credit.end_date|date:'Y-m-d' }}" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно удаления -->
+        <div class="modal fade" id="deleteCreditModal{{ credit.id }}" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Удалить кредит</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Вы уверены, что хотите удалить кредит "{{ credit.name }}"?</p>
+                        <p class="mb-0"><strong>Банк:</strong> {{ credit.bank }}</p>
+                        <p class="mb-0"><strong>Сумма:</strong> {{ credit.total_amount|floatformat:2 }} ₽</p>
+                    </div>
+                    <form method="post" action="{% url 'operations:delete_credit' credit.id %}">
+                        {% csrf_token %}
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-dark">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-bank display-1 text-secondary mb-3"></i>
+                <h4 class="text-secondary">У вас пока нет кредитов</h4>
+                <p class="text-muted">Нажмите "Добавить кредит", чтобы начать отслеживать свои кредиты</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Модальное окно добавления -->
+    <div class="modal fade" id="addCreditModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить кредит</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="post" action="{% url 'operations:add_credit' %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Название</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Банк</label>
+                            <input type="text" class="form-control" name="bank" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Сумма кредита</label>
+                            <input type="number" class="form-control" name="total_amount" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Выплачено</label>
+                            <input type="number" class="form-control" name="paid_amount" value="0" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Процентная ставка</label>
+                            <input type="number" class="form-control" name="interest_rate" required step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Дата окончания</label>
+                            <input type="date" class="form-control" name="end_date" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-dark">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    
+    progressBars.forEach(function(bar) {
+        const progress = bar.getAttribute('data-progress');
+        bar.style.width = '0%';
+        
+        setTimeout(function() {
+            bar.style.transition = 'width 1s ease-in-out';
+            bar.style.width = progress + '%';
+        }, 100);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}
