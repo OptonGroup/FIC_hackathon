@@ -132,11 +132,20 @@ def dashboard(request):
     expense_categories = [item['category__name'] for item in category_expenses]
     expense_distribution = [float(item['total']) for item in category_expenses]
     
-    # Получаем цвета категорий
-    category_colors = list(Category.objects.filter(
-        name__in=expense_categories
-    ).values_list('color', flat=True))
-
+    # Создаем список различных цветов для категорий
+    category_colors = [
+        '#FF6384',  # красный
+        '#36A2EB',  # синий
+        '#FFCE56',  # желтый
+        '#4BC0C0',  # бирюзовый
+        '#9966FF',  # фиолетовый
+        '#FF9F40',  # оранжевый
+        '#7FFF00',  # зеленый
+        '#FF69B4',  # розовый
+        '#20B2AA',  # морской
+        '#BA55D3',  # пурпурный
+    ]
+    
     # Расчет процентного изменения расходов
     last_month_start = (start_of_month - timedelta(days=1)).replace(day=1)
     last_month_expenses = Transaction.objects.filter(
