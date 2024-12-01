@@ -1,0 +1,35 @@
+{% extends 'base_operations.html' %}
+
+{% block title %}FinVision - Главная{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="jumbotron">
+        <h1 class="display-4">Добро пожаловать в FinVision!</h1>
+        <p class="lead">Ваш персональный помощник в управлении финансами</p>
+        <hr class="my-4">
+        <p>Начните контролировать свои финансы прямо сейчас</p>
+        {% if not user.is_authenticated %}
+            <a class="btn btn-primary btn-lg" href="{% url 'accounts:login' %}" role="button">Войти</a>
+            <a class="btn btn-secondary btn-lg" href="{% url 'accounts:register' %}" role="button">Зарегистрироваться</a>
+        {% else %}
+            <a class="btn btn-primary btn-lg" href="{% url 'operations:dashboard' %}" role="button">Перейти к dashboard</a>
+        {% endif %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <h3>Учет расходов</h3>
+            <p>Отслеживайте все ваши расходы и доходы в одном месте</p>
+        </div>
+        <div class="col-md-4">
+            <h3>Финансовые цели</h3>
+            <p>Ставьте цели и отслеживайте прогресс их достижения</p>
+        </div>
+        <div class="col-md-4">
+            <h3>Кредиты</h3>
+            <p>Управляйте кредитами и планируйте погашение</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 
