@@ -224,6 +224,16 @@ def dashboard(request):
         'gold': '#ffd700',          # Золотой
         'platinum': '#e5e4e2',      # Платиновый
         'metal': '#71797E',         # Металлик
+        'red': '#dc3545',           # Красный
+        'blue': '#0d6efd',          # Синий
+        'green': '#198754',         # Зеленый
+        'purple': '#6f42c1',        # Фиолетовый
+        'orange': '#fd7e14',        # Оранжевый
+        'teal': '#20c997',          # Бирюзовый
+        'pink': '#d63384',          # Розовый
+        'indigo': '#6610f2',        # Индиго
+        'cyan': '#0dcaf0',          # Голубой
+        'brown': '#795548',         # Коричневый
     }
     
     # Добавляем цвета для карт
@@ -424,7 +434,7 @@ def edit_target(request, target_id):
             target.current_amount = request.POST.get('current_amount')
             target.deadline = request.POST.get('deadline')
             target.save()
-            messages.success(request, 'Цель успеш��о обновлена')
+            messages.success(request, 'Цель успешо обновлена')
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении цели: {str(e)}')
     return redirect('operations:targets')
@@ -604,7 +614,7 @@ def main(request):
         total=Sum('amount')
     ).order_by('month')
 
-    # Подготовка данных для графиков
+    # Подготовка данных для ��рафиков
     months = []
     income_data = []
     expense_data = []
@@ -679,21 +689,28 @@ def cards(request):
 
 
 def get_bank_by_card_number(card_number):
-    bin_number = card_number[:6]
-    url = f"https://lookup.binlist.net/{bin_number}"
-    response = requests.get(url)
-    response.raise_for_status()
-    bank_info = response.json()
-    bank_name = bank_info.get('bank', {}).get('name', 'Неизвестно')
-    bank_country = bank_info.get('country', {}).get('name', 'Неизвестно')
-    card_type = bank_info.get('type', 'Неизвестно')
-    print(card_type)
+    try:
+        bin_number = card_number[:6]
+        url = f"https://lookup.binlist.net/{bin_number}"
+        response = requests.get(url)
+        response.raise_for_status()
+        bank_info = response.json()
+        bank_name = bank_info.get('bank', {}).get('name', 'Неизвестно')
+        bank_country = bank_info.get('country', {}).get('name', 'Неизвестно')
+        card_type = bank_info.get('type', 'Неизвестно')
+        print(card_type)
 
-    return {
-        'bank_name': bank_name,
-        'bank_country': bank_country,
-        'card_type': card_type
-    }
+        return {
+            'bank_name': bank_name,
+            'bank_country': bank_country,
+            'card_type': card_type
+        }
+    except BaseException:
+        return {
+            'bank_name': "Неизвестно",
+            'bank_country': "Неизвестно",
+            'card_type': "debit"
+        }
 
 @login_required
 def add_card(request):
@@ -736,13 +753,13 @@ def edit_card(request, card_id):
         card = get_object_or_404(Card, id=card_id, user=request.user)
         try:
             card_number = request.POST.get('card_number').replace(' ', '')
-            card_info = get_bank_by_card_number(card_number)
+            # card_info = get_bank_by_card_number(card_number)
             card.name = request.POST.get('name')
             card.card_number = card_number
-            # card.bank = request.POST.get('bank')
-            # card.card_type = request.POST.get('card_type')
-            card.bank = card_info['bank_name']
-            card.card_type = card_info['card_type']
+            card.bank = request.POST.get('bank')
+            card.card_type = request.POST.get('card_type')
+            # card.bank = card_info['bank_name']
+            # card.card_type = card_info['card_type']
             card.design = request.POST.get('design')
             card.balance = request.POST.get('balance')
             card.save()
