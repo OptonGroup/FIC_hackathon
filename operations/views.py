@@ -734,3 +734,93 @@ def delete_card(request, card_id):
         except Exception as e:
             messages.error(request, f'Ошибка при удалении карты: {str(e)}')
     return redirect('operations:cards')
+
+@login_required
+def calendar(request):
+    """Отображение календаря с транзакциями"""
+    today = timezone.now().date()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
+    
+    # Получаем первый и последний день месяца
+    first_day = datetime(year, month, 1).date()
+    if month == 12:
+        last_day = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+    else:
+        last_day = datetime(year, month + 1, 1).date() - timedelta(days=1)
+    
+    # Определяем, сколько пустых ячеек нужно в начале (0 = понедельник, 6 = воскресенье)
+    first_weekday = first_day.weekday()
+    
+    # Создаем список для всех дней месяца, включая пустые ячейки
+    calendar_data = []
+    
+    # Добавляем пустые ячейки в начало
+    for _ in range(first_weekday):
+        calendar_data.append({
+            'date': None,
+            'is_empty': True
+        })
+    
+    # Добавляем дни месяца
+    current_date = first_day
+    while current_date <= last_day:
+        day_transactions = Transaction.objects.filter(
+            user=request.user,
+            date=current_date
+        ).select_related('category')
+        
+        day_payments = RegularPayment.objects.filter(
+            user=request.user,
+            next_payment_date=current_date
+        )
+        
+        # Определяем цвет дня на основе транзакций
+        day_color = '#f2f3fb'  # дефолтный цвет
+        if day_transactions.exists():
+            income = day_transactions.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+            expense = day_transactions.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+            if income > expense:
+                day_color = '#18dccb'
+            elif expense > income:
+                day_color = '#f87f0e'
+            else:
+                day_color = '#2f2cef'
+        elif day_payments.exists():
+            day_color = '#f60cf0'
+            
+        calendar_data.append({
+            'date': current_date,
+            'is_empty': False,
+            'transactions': day_transactions,
+            'regular_payments': day_payments,
+            'color': day_color,
+            'total_income': day_transactions.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0,
+            'total_expense': day_transactions.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0,
+        })
+        
+        current_date += timedelta(days=1)
+    
+    # Добавляем пустые ячейки в конец до полной недели
+    while len(calendar_data) % 7 != 0:
+        calendar_data.append({
+            'date': None,
+            'is_empty': True
+        })
+    
+    MONTHS_RU = {
+        1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
+        5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
+        9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
+    }
+    
+    context = {
+        'calendar_data': calendar_data,
+        'year': year,
+        'month': month,
+        'month_name': f"{MONTHS_RU[month]} {year}",
+        'prev_month': (first_day - timedelta(days=1)).strftime('%Y-%m'),
+        'next_month': (last_day + timedelta(days=1)).strftime('%Y-%m'),
+    }
+    
+    return render(request, 'operations/calendar.html', context)
