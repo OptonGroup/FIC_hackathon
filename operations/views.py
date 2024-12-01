@@ -10,6 +10,12 @@ from django.db.models.functions import TruncMonth
 import json
 from decimal import Decimal
 import requests
+import csv
+from openpyxl import Workbook
+from django.http import JsonResponse, HttpResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
 def get_currency_rates():
     # Заглушка с фиксированными значениями
@@ -356,6 +362,137 @@ def delete_transaction(request, transaction_id):
         Transaction.objects.filter(id=transaction_id, user=request.user).delete()
     
     return redirect('operations:transactions')
+
+@login_required
+def export_transactions(request, file_format):
+    """Экспорт транзакций в указанном формате с учетом фильтров"""
+    # Получаем все транзакции пользователя
+    transactions_list = Transaction.objects.filter(user=request.user)
+
+    # Применяем фильтры
+    transaction_type = request.GET.get('type')
+    category = request.GET.get('category')
+    card = request.GET.get('card')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+
+    if transaction_type:
+        transactions_list = transactions_list.filter(type=transaction_type)
+    if category:
+        transactions_list = transactions_list.filter(category_id=category)
+    if card:
+        transactions_list = transactions_list.filter(card_id=card)
+    if date_from:
+        transactions_list = transactions_list.filter(date__gte=date_from)
+    if date_to:
+        transactions_list = transactions_list.filter(date__lte=date_to)
+
+    if file_format == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="transactions.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Дата', 'Карта', 'Категория', 'Описание', 'Тип', 'Сумма'])
+        for transaction in transactions_list:
+            writer.writerow([
+                transaction.date,
+                transaction.card.card_number if transaction.card else 'N/A',
+                transaction.category.name if transaction.category else 'Без категории',
+                transaction.description,
+                transaction.get_type_display(),
+                transaction.amount,
+            ])
+        return response
+
+    elif file_format == 'json':
+        transactions_data = [
+            {
+                "Дата": transaction.date.strftime("%Y-%m-%d"),
+                "Карта": transaction.card.card_number if transaction.card else "N/A",
+                "Категория": transaction.category.name if transaction.category else "Без категории",
+                "Описание": transaction.description,
+                "Тип": transaction.get_type_display(),
+                "Сумма": float(transaction.amount),
+            }
+            for transaction in transactions_list
+        ]
+        
+        # Создаем HTTP-ответ с правильным типом контента для JSON файла
+        response = HttpResponse(
+            json.dumps({"Транзакции": transactions_data}, ensure_ascii=False, indent=4),  # Удобное форматирование JSON с отступами
+            content_type='application/json'
+        )
+        response['Content-Disposition'] = 'attachment; filename="transactions.json"'
+        return response
+
+    elif file_format == 'excel':
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="transactions.xlsx"'
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Transactions"
+        sheet.append(['Дата', 'Карта', 'Категория', 'Описание', 'Тип', 'Сумма'])
+
+        for transaction in transactions_list:
+            sheet.append([
+                transaction.date,
+                transaction.card.card_number if transaction.card else 'N/A',
+                transaction.category.name if transaction.category else 'Без категории',
+                transaction.description,
+                transaction.get_type_display(),
+                float(transaction.amount),
+            ])
+
+        workbook.save(response)
+        return response
+    
+    elif file_format == 'pdf':
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+
+        buffer = BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+
+        p.setFont("Times-Roman", 12)
+
+        p.drawString(30, 750, f"Дата: {datetime.now().strftime('%Y-%m-%d')}")
+        p.drawString(30, 730, f"Пользователь: {request.user.first_name} {request.user.last_name}")
+        p.drawString(30, 710, "Сервис: My Finance Service")
+
+        y_position = 650
+        headers = ['Дата', 'Карта', 'Категория', 'Описание', 'Тип', 'Сумма']
+        p.drawString(30, y_position, headers[0])
+        p.drawString(120, y_position, headers[1])
+        p.drawString(200, y_position, headers[2])
+        p.drawString(300, y_position, headers[3])
+        p.drawString(400, y_position, headers[4])
+        p.drawString(500, y_position, headers[5])
+
+        y_position -= 20
+        for transaction in transactions_list:
+            p.drawString(30, y_position, transaction.date.strftime('%Y-%m-%d'))
+            p.drawString(120, y_position, transaction.card.card_number if transaction.card else 'N/A')
+            p.drawString(200, y_position, transaction.category.name if transaction.category else 'Без категории')
+            p.drawString(300, y_position, transaction.description)
+            p.drawString(400, y_position, transaction.get_type_display())
+            p.drawString(500, y_position, str(transaction.amount))
+            y_position -= 20
+
+            if y_position < 50:
+                p.showPage()
+                p.setFont("Times-Roman", 12)
+                y_position = 750
+
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        response.write(buffer.read())
+        return response
+
+    return HttpResponse("Unsupported file format", status=400)
+
 
 @login_required
 def targets(request):
