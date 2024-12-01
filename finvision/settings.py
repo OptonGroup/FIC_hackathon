@@ -131,3 +131,9 @@ LOGOUT_REDIRECT_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'operations:dashboard'
 LOGIN_URL = 'accounts:login'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# Базовый путь для медиа-файлов
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# URL для доступа к медиа-файлам
+MEDIA_URL = '/media/'

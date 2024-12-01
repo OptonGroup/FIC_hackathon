@@ -1,0 +1,62 @@
+{% extends 'base_operations.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card-border p-4">
+                <h2 class="text-center mb-4">Обновить аватар</h2>
+                
+                <form method="POST" enctype="multipart/form-data" class="text-center">
+                    {% csrf_token %}
+                    
+                    <div class="text-center mb-4">
+                        <img src="{{ user.profile.avatar.url }}" alt="Current Avatar" 
+                             class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;"
+                             id="avatarPreview">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="avatarInput" class="btn btn-custom-outline mb-3">
+                            <i class="bi bi-image me-2"></i>Выбрать изображение
+                        </label>
+                        <input type="file" name="avatar" id="avatarInput" accept="image/*" 
+                               style="display: none;" onchange="previewImage(this);">
+                        <div class="text-secondary small">
+                            Поддерживаемые форматы: JPG, PNG, GIF
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-custom">
+                            <i class="bi bi-cloud-upload me-2"></i>Сохранить
+                        </button>
+                    </div>
+                </form>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} mt-3">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %} 
