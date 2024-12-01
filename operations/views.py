@@ -205,8 +205,26 @@ def transactions(request):
     if date_to:
         transactions_list = transactions_list.filter(date__lte=date_to)
     
-    # Сортировка по дате (новые сверху)
-    transactions_list = transactions_list.order_by('-date')
+    # Сортировка
+    sort_field = request.GET.get('sort', '-date')  # По умолчанию сортируем по дате (новые сверху)
+    if request.GET.get('desc'):
+        sort_field = f"-{sort_field.replace('-', '')}"
+    else:
+        sort_field = sort_field.replace('-', '')
+        
+    # Маппинг полей сортировки
+    sort_mapping = {
+        'date': 'date',
+        'type': 'type',
+        'category': 'category__name',
+        'amount': 'amount'
+    }
+    
+    if sort_field.replace('-', '') in sort_mapping:
+        sort_field = f"{'-' if sort_field.startswith('-') else ''}{sort_mapping[sort_field.replace('-', '')]}"
+        transactions_list = transactions_list.order_by(sort_field)
+    
+    # Пагинация
     paginator = Paginator(transactions_list, 10)  # 10 транзакций на страницу
     page = request.GET.get('page')
     transactions = paginator.get_page(page)

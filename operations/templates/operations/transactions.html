@@ -60,11 +60,31 @@
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>Дата</th>
-                            <th>Тип</th>
-                            <th>Категория</th>
+                            <th>
+                                <a href="?{% if request.GET.sort == 'date' and not request.GET.desc %}sort=date&desc=1{% else %}sort=date{% endif %}" class="text-dark text-decoration-none">
+                                    Дата
+                                    <i class="bi bi-arrow-{% if request.GET.sort == 'date' and request.GET.desc %}down{% elif request.GET.sort == 'date' or request.GET.sort == None %}up{% else %}down{% endif %}"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{% if request.GET.sort == 'type' and not request.GET.desc %}sort=type&desc=1{% else %}sort=type{% endif %}" class="text-dark text-decoration-none">
+                                    Тип
+                                    <i class="bi bi-arrow-{% if request.GET.sort == 'type' and request.GET.desc %}down{% else %}up{% endif %}"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="?{% if request.GET.sort == 'category' and not request.GET.desc %}sort=category&desc=1{% else %}sort=category{% endif %}" class="text-dark text-decoration-none">
+                                    Категория
+                                    <i class="bi bi-arrow-{% if request.GET.sort == 'category' and request.GET.desc %}down{% else %}up{% endif %}"></i>
+                                </a>
+                            </th>
                             <th>Описание</th>
-                            <th>Сумма</th>
+                            <th>
+                                <a href="?{% if request.GET.sort == 'amount' and not request.GET.desc %}sort=amount&desc=1{% else %}sort=amount{% endif %}" class="text-dark text-decoration-none">
+                                    Сумма
+                                    <i class="bi bi-arrow-{% if request.GET.sort == 'amount' and request.GET.desc %}down{% else %}up{% endif %}"></i>
+                                </a>
+                            </th>
                             <th>Действия</th>
                         </tr>
                     </thead>
