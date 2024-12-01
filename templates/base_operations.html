@@ -246,14 +246,14 @@
     </style>
 </head>
 <body>
-    <div class="ai-assistant-popup" id="aiAssistantPopup">
+    <div class="ai-assistant-popup minimized" id="aiAssistantPopup" style="max-height: 400px;">
         <div class="ai-assistant-header">
             <span>AI Ассистент</span>
             <div class="ai-controls">
-                <button class="minimize-btn" id="minimizeAI">_</button>
+                <button class="minimize-btn" id="minimizeAI">□</button>
             </div>
         </div>
-        <div class="ai-assistant-content">
+        <div class="ai-assistant-content" style="max-height: 400px;">
             <div class="ai-messages" id="aiMessages">
                 <!-- Сообщения будут добавляться здесь динамически -->
                 <div class="ai-message">
@@ -284,7 +284,6 @@
                 
                 const messageHTML = `
                     <div class="ai-message ${isUser ? 'user' : ''}">
-                // Обрабаываем markdown только для сообщений от AI
                         <div class="message-content markdown-content">
                             ${messageContent}
                         </div>
@@ -350,6 +349,7 @@
             // Existing AI assistant controls
             const popup = document.getElementById('aiAssistantPopup');
             const minimizeBtn = document.getElementById('minimizeAI');
+            minimizeBtn.textContent = '□';
 
             // Анимация появления
             gsap.to(popup, {
