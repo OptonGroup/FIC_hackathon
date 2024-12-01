@@ -1,19 +1,5 @@
 .ai-consultant {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 1000;
-}
-
-.ai-consultant:hover {
-    background-color: #0056b3;
-    cursor: pointer;
+    display: none;
 }
 
 .user-container {
@@ -100,4 +86,95 @@
 .profile-section {
     padding: 20px;
     border-bottom: 1px solid var(--secondary-color);
+}
+
+/* AI Assistant Popup Styles */
+.ai-assistant-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 400px;
+}
+
+.ai-assistant-popup.minimized {
+    height: 45px;
+    overflow: hidden;
+}
+
+.ai-assistant-popup.hidden {
+    display: none;
+}
+
+.ai-assistant-header {
+    padding: 12px 15px;
+    background: #007bff;
+    color: white;
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.ai-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.ai-controls button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0 5px;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.ai-controls button:hover {
+    opacity: 0.8;
+}
+
+.ai-assistant-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex-grow: 1;
+    background: #f8f9fa;
+    border-radius: 0 0 10px 10px;
+}
+
+.ai-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ai-message {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.ai-message i {
+    color: #007bff;
+    font-size: 1.2em;
+    margin-top: 3px;
+}
+
+.message-content {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex-grow: 1;
+    font-size: 14px;
+    line-height: 1.4;
 }
