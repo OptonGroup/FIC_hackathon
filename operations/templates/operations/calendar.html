@@ -1,0 +1,315 @@
+{% extends 'base_operations.html' %}
+{% load static %}
+
+{% block content %}
+<div class="calendar-wrapper">
+    <div class="calendar-container">
+        <!-- Заголовок с навигацией -->
+        <div class="calendar-header">
+            <div class="calendar-nav">
+                <button class="nav-btn" onclick="window.location.href='?year={{ prev_month|slice:':4' }}&month={{ prev_month|slice:'5:7' }}'">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <h2>{{ month_name }}</h2>
+                <button class="nav-btn" onclick="window.location.href='?year={{ next_month|slice:':4' }}&month={{ next_month|slice:'5:7' }}'">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Календарь -->
+        <div class="calendar">
+            <!-- Дни недели -->
+            <div class="weekdays">
+                <div>Пн</div>
+                <div>Вт</div>
+                <div>Ср</div>
+                <div>Чт</div>
+                <div>Пт</div>
+                <div>Сб</div>
+                <div>Вс</div>
+            </div>
+
+            <!-- Дни месяца -->
+            <div class="days">
+                {% for day in calendar_data %}
+                    {% if day.is_empty %}
+                        <div class="day empty"></div>
+                    {% else %}
+                        <div class="day" 
+                             style="background-color: {{ day.color }}"
+                             data-bs-toggle="modal" 
+                             data-bs-target="#dayModal{{ day.date|date:'Ymd' }}">
+                            <span class="date">{{ day.date|date:"d" }}</span>
+                            {% if day.transactions.exists or day.regular_payments.exists %}
+                                <div class="indicators">
+                                    {% if day.total_income > 0 %}
+                                        <div class="income">+{{ day.total_income|floatformat:0 }}₽</div>
+                                    {% endif %}
+                                    {% if day.total_expense > 0 %}
+                                        <div class="expense">-{{ day.total_expense|floatformat:0 }}₽</div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Модальное окно -->
+                        <div class="modal fade" id="dayModal{{ day.date|date:'Ymd' }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">{{ day.date|date:"d F Y" }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {% if day.transactions.exists or day.regular_payments.exists %}
+                                            {% if day.transactions.exists %}
+                                                <div class="transactions">
+                                                    <h6>Транзакции:</h6>
+                                                    {% for transaction in day.transactions %}
+                                                        <div class="transaction-item">
+                                                            <span>{{ transaction.category.name }}</span>
+                                                            <span class="amount {% if transaction.type == 'income' %}income{% else %}expense{% endif %}">
+                                                                {% if transaction.type == 'income' %}+{% else %}-{% endif %}{{ transaction.amount }} ₽
+                                                            </span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            {% if day.regular_payments.exists %}
+                                                <div class="regular-payments mt-3">
+                                                    <h6>Регулярные платежи:</h6>
+                                                    {% for payment in day.regular_payments %}
+                                                        <div class="payment-item">
+                                                            <span>{{ payment.name }}</span>
+                                                            <span class="amount">{{ payment.amount }} ₽</span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <p class="text-muted">Нет операций</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar-wrapper {
+    padding: 20px;
+}
+
+.calendar-container {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 900px; /* Ограничиваем максимальную ширину */
+    margin: 0 auto;
+}
+
+.calendar-header {
+    margin-bottom: 20px;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-btn {
+    background: transparent;
+    border: 2px solid var(--active-color);
+    color: var(--active-color);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: var(--active-color);
+    color: white;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    min-width: 200px;
+    text-align: center;
+    animation: fadeInDown 0.4s ease-out forwards;
+}
+
+.weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.day {
+    position: relative;
+    padding-top: 80%;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day:not(.empty) {
+    animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.day:not(.empty):hover {
+    transform: scale(1.02);
+    filter: brightness(0.95);
+}
+
+.day.empty {
+    background-color: transparent;
+    cursor: default;
+}
+
+.day > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+}
+
+.date {
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.indicators {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    font-size: 0.75rem;
+}
+
+.income {
+    color: #18dccb;
+}
+
+.expense {
+    color: #f87f0e;
+}
+
+@media (max-width: 768px) {
+    .calendar-wrapper {
+        padding: 10px;
+    }
+
+    .calendar-container {
+        padding: 15px;
+    }
+
+    .days {
+        gap: 4px;
+    }
+
+    .weekdays {
+        gap: 4px;
+    }
+
+    .day {
+        padding-top: 100%; /* Возвращаем квадратную форму на мобильных */
+    }
+
+    .day > * {
+        padding: 4px;
+    }
+
+    .indicators {
+        bottom: 3px;
+        left: 3px;
+        right: 3px;
+        font-size: 0.65rem;
+    }
+
+    .calendar-header h2 {
+        font-size: 1.2rem;
+        min-width: 150px;
+    }
+
+    .nav-btn {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+/* Стили для модального окна */
+.modal-content {
+    border-radius: 16px;
+}
+
+.transaction-item, .payment-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.transaction-item:last-child, .payment-item:last-child {
+    border-bottom: none;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Быстрые последовательные задержки */
+.day:nth-child(7n + 1) { animation-delay: 0.05s; }
+.day:nth-child(7n + 2) { animation-delay: 0.08s; }
+.day:nth-child(7n + 3) { animation-delay: 0.11s; }
+.day:nth-child(7n + 4) { animation-delay: 0.14s; }
+.day:nth-child(7n + 5) { animation-delay: 0.17s; }
+.day:nth-child(7n + 6) { animation-delay: 0.20s; }
+.day:nth-child(7n + 7) { animation-delay: 0.23s; }
+</style>
+
+{% endblock %}

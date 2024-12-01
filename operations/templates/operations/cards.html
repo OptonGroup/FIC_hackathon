@@ -17,10 +17,28 @@
             <div class="card h-100">
                 <div class="card-body">
                     <!-- Визуализация карты -->
-                    <div class="card-preview mb-3 p-4 rounded-3 {% if card.design == 'classic_black' %}bg-dark text-white{% elif card.design == 'gold' %}bg-warning{% elif card.design == 'platinum' %}bg-secondary text-white{% elif card.design == 'metal' %}bg-light{% else %}bg-white{% endif %}">
+                    <div class="card-preview mb-3 p-4 rounded-3 
+                        {% if card.design == 'classic_black' %}bg-dark text-white
+                        {% elif card.design == 'classic_white' %}bg-white text-dark border
+                        {% elif card.design == 'gold' %}bg-warning text-dark
+                        {% elif card.design == 'platinum' %}bg-secondary text-white
+                        {% elif card.design == 'metal' %}bg-light text-dark border
+                        {% elif card.design == 'red' %}bg-danger text-white
+                        {% elif card.design == 'blue' %}bg-primary text-white
+                        {% elif card.design == 'green' %}bg-success text-white
+                        {% elif card.design == 'purple' %}bg-purple text-white
+                        {% elif card.design == 'orange' %}bg-orange text-dark
+                        {% elif card.design == 'teal' %}bg-teal text-white
+                        {% elif card.design == 'pink' %}bg-pink text-white
+                        {% elif card.design == 'indigo' %}bg-indigo text-white
+                        {% elif card.design == 'cyan' %}bg-info text-dark
+                        {% elif card.design == 'brown' %}bg-brown text-white
+                        {% else %}bg-white text-dark border{% endif %}">
                         <div class="d-flex justify-content-between align-items-start mb-4">
                             <div>
-                                <h5 class="mb-1">{{ card.name }}</h5>
+                                <h5 class="mb-1 {% if card.design in 'classic_white,gold,metal,orange,cyan' %}text-dark{% else %}text-white{% endif %}">
+                                    {{ card.name }}
+                                </h5>
                                 <small>{{ card.bank }}</small>
                             </div>
                             <i class="bi {% if card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} fs-3"></i>
@@ -89,7 +107,8 @@
                                 <label class="form-label">Дизайн карты</label>
                                 <select class="form-select" name="design" required>
                                     {% for design_code, design_name in card_designs %}
-                                    <option value="{{ design_code }}" {% if card.design == design_code %}selected{% endif %}>
+                                    <option value="{{ design_code }}" 
+                                            {% if card.design == design_code %}selected{% endif %}>
                                         {{ design_name }}
                                     </option>
                                     {% endfor %}
@@ -97,7 +116,13 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Баланс</label>
-                                <input type="number" class="form-control" name="balance" value="{{ card.balance }}" step="0.01" required>
+                                <input type="number" 
+                                       class="form-control" 
+                                       name="balance" 
+                                       value="{{ card.balance|stringformat:'.2f'|cut:',' }}" 
+                                       step="0.01" 
+                                       required
+                                       oninput="if(this.value.indexOf('.') != -1) { this.value = parseFloat(this.value).toFixed(2); } else { this.value = parseFloat(this.value).toFixed(2); }">
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -165,28 +190,24 @@
                         <input type="text" class="form-control" name="card_number" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Банк</label>
-                        <input type="text" class="form-control" name="bank" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Тип карты</label>
-                        <select class="form-select" name="card_type" required>
-                            {% for type_code, type_name in card_types %}
-                            <option value="{{ type_code }}">{{ type_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Дизайн карты</label>
                         <select class="form-select" name="design" required>
                             {% for design_code, design_name in card_designs %}
-                            <option value="{{ design_code }}">{{ design_name }}</option>
+                            <option value="{{ design_code }}">
+                                {{ design_name }}
+                            </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Начальный баланс</label>
-                        <input type="number" class="form-control" name="balance" value="0" step="0.01" required>
+                        <input type="number" 
+                               class="form-control" 
+                               name="balance" 
+                               value="0" 
+                               step="0.01" 
+                               required
+                               oninput="if(this.value.indexOf('.') != -1) { this.value = parseFloat(this.value).toFixed(2); } else { this.value = parseFloat(this.value).toFixed(2); }">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -197,4 +218,38 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Дополнительные цвета для карт */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+
+.bg-teal {
+    background-color: #20c997 !important;
+}
+
+.bg-pink {
+    background-color: #d63384 !important;
+}
+
+.bg-indigo {
+    background-color: #6610f2 !important;
+}
+
+.bg-brown {
+    background-color: #795548 !important;
+}
+
+/* Цвета текста для карт с темным фоном */
+.bg-purple .text-opacity-75,
+.bg-indigo .text-opacity-75,
+.bg-brown .text-opacity-75 {
+    opacity: 0.9 !important;
+}
+</style>
 {% endblock %}

@@ -174,6 +174,16 @@
                                         {% elif transaction.card.design == 'gold' %}bg-warning text-dark
                                         {% elif transaction.card.design == 'platinum' %}bg-secondary text-white
                                         {% elif transaction.card.design == 'metal' %}bg-light text-dark border
+                                        {% elif transaction.card.design == 'red' %}bg-danger text-white
+                                        {% elif transaction.card.design == 'blue' %}bg-primary text-white
+                                        {% elif transaction.card.design == 'green' %}bg-success text-white
+                                        {% elif transaction.card.design == 'purple' %}bg-purple text-white
+                                        {% elif transaction.card.design == 'orange' %}bg-orange text-white
+                                        {% elif transaction.card.design == 'teal' %}bg-teal text-white
+                                        {% elif transaction.card.design == 'pink' %}bg-pink text-white
+                                        {% elif transaction.card.design == 'indigo' %}bg-indigo text-white
+                                        {% elif transaction.card.design == 'cyan' %}bg-info text-white
+                                        {% elif transaction.card.design == 'brown' %}bg-brown text-white
                                         {% else %}bg-white text-dark border{% endif %}">
                                         <div class="d-flex align-items-center">
                                             <i class="bi {% if transaction.card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} me-2"></i>
@@ -215,6 +225,16 @@
                                     {% elif transaction.card.design == 'gold' %}bg-warning text-dark
                                     {% elif transaction.card.design == 'platinum' %}bg-secondary text-white
                                     {% elif transaction.card.design == 'metal' %}bg-light text-dark border
+                                    {% elif transaction.card.design == 'red' %}bg-danger text-white
+                                    {% elif transaction.card.design == 'blue' %}bg-primary text-white
+                                    {% elif transaction.card.design == 'green' %}bg-success text-white
+                                    {% elif transaction.card.design == 'purple' %}bg-purple text-white
+                                    {% elif transaction.card.design == 'orange' %}bg-orange text-white
+                                    {% elif transaction.card.design == 'teal' %}bg-teal text-white
+                                    {% elif transaction.card.design == 'pink' %}bg-pink text-white
+                                    {% elif transaction.card.design == 'indigo' %}bg-indigo text-white
+                                    {% elif transaction.card.design == 'cyan' %}bg-info text-white
+                                    {% elif transaction.card.design == 'brown' %}bg-brown text-white
                                     {% else %}bg-white text-dark border{% endif %}">
                                     <div class="d-flex align-items-center">
                                         <i class="bi {% if transaction.card.card_type == 'credit' %}bi-credit-card{% else %}bi-credit-card-2-front{% endif %} me-2"></i>
@@ -481,6 +501,38 @@
 
 .dropdown-item:hover {
     background-color: #f8f9fa;
+}
+
+/* Дополнительные цвета для карт */
+.bg-purple {
+    background-color: #6f42c1 !important;
+}
+
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+
+.bg-teal {
+    background-color: #20c997 !important;
+}
+
+.bg-pink {
+    background-color: #d63384 !important;
+}
+
+.bg-indigo {
+    background-color: #6610f2 !important;
+}
+
+.bg-brown {
+    background-color: #795548 !important;
+}
+
+/* Цвета текста для карт с темным фоном */
+.bg-purple .text-opacity-75,
+.bg-indigo .text-opacity-75,
+.bg-brown .text-opacity-75 {
+    opacity: 0.9 !important;
 }
 </style>
 {% endblock %}

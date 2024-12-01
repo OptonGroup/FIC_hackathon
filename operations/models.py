@@ -20,7 +20,16 @@ class Card(models.Model):
         ('gold', 'Золотая'),
         ('platinum', 'Платиновая'),
         ('metal', 'Металлическая'),
-        # Можно добавить больше вариантов дизайна
+        ('red', 'Красная'),
+        ('blue', 'Синяя'),
+        ('green', 'Зеленая'),
+        ('purple', 'Фиолетовая'),
+        ('orange', 'Оранжевая'),
+        ('teal', 'Бирюзовая'),
+        ('pink', 'Розовая'),
+        ('indigo', 'Индиго'),
+        ('cyan', 'Голубая'),
+        ('brown', 'Коричневая'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')

@@ -15,7 +15,7 @@
     <style>
         :root {
             --sidebar-width: 280px;
-            --primary-color: #f2f3fb;      /* Основной цвет для sidebar */
+            --primary-color: #ffffff;      /* Для sidebar и карточек */
             --secondary-color: #363a58;    /* Для текста */
             --active-color: #2f2cef;       /* Для активных элементов в sidebar */
             --accent-color: #f87f0e;       /* Для акцентов и активных элементов */
@@ -28,7 +28,7 @@
             --neutral-4: #bbb5b1;          /* Для неактивных элементов */
             --font-family: 'Roboto', sans-serif;
             --text-color: #343C6A;
-            --background-color: #F5F7FA;   /* Для основного фона */
+            --background-color: #ffffff;   /* Для основного фона */
         }
 
         body {
@@ -58,13 +58,14 @@
 
         .badge {
             font-weight: 500;
-            font-size: 0.9rem;
         }
 
         .btn {
             font-weight: 500;
         }
-
+        .text-secondary {
+            font-size: 0.9rem !important;
+        }   
         .sidebar {
             width: var(--sidebar-width);
             height: 100vh;
@@ -234,7 +235,6 @@
         .badge {
             padding: 0.5em 0.8em;
             font-weight: 500;
-            font-size: 0.85em;
             background-color: var(--highlight-color);
         }
 
@@ -324,32 +324,44 @@
         <ul class="nav flex-column mt-3">
             <li class="nav-item">
                 <a href="{% url 'operations:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-house-door"></i> Главная
+                    <i class="bi bi-house"></i>
+                    <span>Главная</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:transactions' %}" class="nav-link {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
-                    <i class="bi bi-credit-card"></i> Транзакции
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Транзакции</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'operations:calendar' %}" class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Календарь</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:targets' %}" class="nav-link {% if request.resolver_match.url_name == 'targets' %}active{% endif %}">
-                    <i class="bi bi-piggy-bank"></i> Цели
+                    <i class="bi bi-bullseye"></i>
+                    <span>Цели</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:credits' %}" class="nav-link {% if request.resolver_match.url_name == 'credits' %}active{% endif %}">
-                    <i class="bi bi-cash-coin"></i> Кредиты
+                    <i class="bi bi-bank"></i>
+                    <span>Кредиты</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:regular_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'regular_payments' %}active{% endif %}">
-                    <i class="bi bi-arrow-repeat"></i> Регулярные платежи
+                    <i class="bi bi-clock-history"></i>
+                    <span>Регулярные платежи</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{% url 'operations:cards' %}" class="nav-link {% if request.resolver_match.url_name == 'cards' %}active{% endif %}">
-                    <i class="bi bi-credit-card-2-front"></i> Мои карты
+                    <i class="bi bi-credit-card"></i>
+                    <span>Карты</span>
                 </a>
             </li>
         </ul>
@@ -405,7 +417,7 @@
                         </div>
                     </div>
 
-                    <!-- Диаграмма категорий -->
+                    <!-- Диаграмма кате��орий -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <h5 class="card-title">Расходы по категориям</h5>

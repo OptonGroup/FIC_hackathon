@@ -13,18 +13,49 @@ import requests
 import csv
 from openpyxl import Workbook
 from django.http import JsonResponse, HttpResponse
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from io import BytesIO
+
+from django.core.cache import cache
+from django.http import JsonResponse
 
 def get_currency_rates():
-    # Заглушка с фиксированными значениями
-    return {
-        'USD': Decimal('96.74'),
-        'EUR': Decimal('104.52'),
-        'CNY': Decimal('13.41'),
-        'BTC': format_number(Decimal('4325789.45'))  # Форматируем число прямо здесь
-    }
+    """Получение актуальных курсов валют с кэшированием"""
+    # Пробуем получить данные из кэша
+    cached_rates = cache.get('currency_rates')
+    if cached_rates:
+        return cached_rates
+
+    try:
+        # Получаем курсы от ЦБ РФ
+        response = requests.get('https://www.cbr-xml-daily.ru/daily_json.js')
+        response.raise_for_status()
+        data = response.json()
+        
+        # Форматируем данные
+        rates = {
+            'USD': Decimal(str(data['Valute']['USD']['Value'])),
+            'EUR': Decimal(str(data['Valute']['EUR']['Value'])),
+            'CNY': Decimal(str(data['Valute']['CNY']['Value'])),
+        }
+        
+        # Добавляем курс BTC (можно использовать другое API для криптовалют)
+        try:
+            btc_response = requests.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=rub')
+            btc_data = btc_response.json()
+            rates['BTC'] = Decimal(str(btc_data['bitcoin']['rub']))
+        except:
+            rates['BTC'] = Decimal('0')  # Если не удалось получить курс BTC
+
+        # Кэшируем результат на 1 час
+        cache.set('currency_rates', rates, 3600)
+        return rates
+    except:
+        # В случае ошибки возвращаем последние известные курсы или значения по умолчанию
+        return {
+            'USD': Decimal('96.74'),
+            'EUR': Decimal('104.52'),
+            'CNY': Decimal('13.41'),
+            'BTC': Decimal('4325789.45')
+        }
 
 def format_number(number):
     """Форматирует большие числа с разделителями"""
@@ -197,6 +228,16 @@ def dashboard(request):
         'gold': '#ffd700',          # Золотой
         'platinum': '#e5e4e2',      # Платиновый
         'metal': '#71797E',         # Металлик
+        'red': '#dc3545',           # Красный
+        'blue': '#0d6efd',          # Синий
+        'green': '#198754',         # Зеленый
+        'purple': '#6f42c1',        # Фиолетовый
+        'orange': '#fd7e14',        # Оранжевый
+        'teal': '#20c997',          # Бирюзовый
+        'pink': '#d63384',          # Розовый
+        'indigo': '#6610f2',        # Индиго
+        'cyan': '#0dcaf0',          # Голубой
+        'brown': '#795548',         # Коричневый
     }
     
     # Добавляем цвета для карт
@@ -447,49 +488,49 @@ def export_transactions(request, file_format):
         workbook.save(response)
         return response
     
-    elif file_format == 'pdf':
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+    # elif file_format == 'pdf':
+    #     response = HttpResponse(content_type='application/pdf')
+    #     response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
 
-        buffer = BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
+    #     buffer = BytesIO()
+    #     p = canvas.Canvas(buffer, pagesize=letter)
 
-        p.setFont("Times-Roman", 12)
+    #     p.setFont("Times-Roman", 12)
 
-        p.drawString(30, 750, f"Дата: {datetime.now().strftime('%Y-%m-%d')}")
-        p.drawString(30, 730, f"Пользователь: {request.user.first_name} {request.user.last_name}")
-        p.drawString(30, 710, "Сервис: My Finance Service")
+    #     p.drawString(30, 750, f"Дата: {datetime.now().strftime('%Y-%m-%d')}")
+    #     p.drawString(30, 730, f"Пользователь: {request.user.first_name} {request.user.last_name}")
+    #     p.drawString(30, 710, "Сервис: My Finance Service")
 
-        y_position = 650
-        headers = ['Дата', 'Карта', 'Категория', 'Описание', 'Тип', 'Сумма']
-        p.drawString(30, y_position, headers[0])
-        p.drawString(120, y_position, headers[1])
-        p.drawString(200, y_position, headers[2])
-        p.drawString(300, y_position, headers[3])
-        p.drawString(400, y_position, headers[4])
-        p.drawString(500, y_position, headers[5])
+    #     y_position = 650
+    #     headers = ['Дата', 'Карта', 'Категория', 'Описание', 'Тип', 'Сумма']
+    #     p.drawString(30, y_position, headers[0])
+    #     p.drawString(120, y_position, headers[1])
+    #     p.drawString(200, y_position, headers[2])
+    #     p.drawString(300, y_position, headers[3])
+    #     p.drawString(400, y_position, headers[4])
+    #     p.drawString(500, y_position, headers[5])
 
-        y_position -= 20
-        for transaction in transactions_list:
-            p.drawString(30, y_position, transaction.date.strftime('%Y-%m-%d'))
-            p.drawString(120, y_position, transaction.card.card_number if transaction.card else 'N/A')
-            p.drawString(200, y_position, transaction.category.name if transaction.category else 'Без категории')
-            p.drawString(300, y_position, transaction.description)
-            p.drawString(400, y_position, transaction.get_type_display())
-            p.drawString(500, y_position, str(transaction.amount))
-            y_position -= 20
+    #     y_position -= 20
+    #     for transaction in transactions_list:
+    #         p.drawString(30, y_position, transaction.date.strftime('%Y-%m-%d'))
+    #         p.drawString(120, y_position, transaction.card.card_number if transaction.card else 'N/A')
+    #         p.drawString(200, y_position, transaction.category.name if transaction.category else 'Без категории')
+    #         p.drawString(300, y_position, transaction.description)
+    #         p.drawString(400, y_position, transaction.get_type_display())
+    #         p.drawString(500, y_position, str(transaction.amount))
+    #         y_position -= 20
 
-            if y_position < 50:
-                p.showPage()
-                p.setFont("Times-Roman", 12)
-                y_position = 750
+    #         if y_position < 50:
+    #             p.showPage()
+    #             p.setFont("Times-Roman", 12)
+    #             y_position = 750
 
-        p.showPage()
-        p.save()
+    #     p.showPage()
+    #     p.save()
 
-        buffer.seek(0)
-        response.write(buffer.read())
-        return response
+    #     buffer.seek(0)
+    #     response.write(buffer.read())
+    #     return response
 
     return HttpResponse("Unsupported file format", status=400)
 
@@ -528,7 +569,7 @@ def edit_target(request, target_id):
             target.current_amount = request.POST.get('current_amount')
             target.deadline = request.POST.get('deadline')
             target.save()
-            messages.success(request, 'Цель успешно обновлена')
+            messages.success(request, 'Цель успешо обновлена')
         except Exception as e:
             messages.error(request, f'Ошибка при обновлении цели: {str(e)}')
     return redirect('operations:targets')
@@ -708,7 +749,7 @@ def main(request):
         total=Sum('amount')
     ).order_by('month')
 
-    # Подготовка данных для графиков
+    # Подготовка данных для ��рафиков
     months = []
     income_data = []
     expense_data = []
@@ -781,6 +822,31 @@ def cards(request):
     }
     return render(request, 'operations/cards.html', context)
 
+
+def get_bank_by_card_number(card_number):
+    try:
+        bin_number = card_number[:6]
+        url = f"https://lookup.binlist.net/{bin_number}"
+        response = requests.get(url)
+        response.raise_for_status()
+        bank_info = response.json()
+        bank_name = bank_info.get('bank', {}).get('name', 'Неизвестно')
+        bank_country = bank_info.get('country', {}).get('name', 'Неизвестно')
+        card_type = bank_info.get('type', 'Неизвестно')
+        print(card_type)
+
+        return {
+            'bank_name': bank_name,
+            'bank_country': bank_country,
+            'card_type': card_type
+        }
+    except BaseException:
+        return {
+            'bank_name': "Неизвестно",
+            'bank_country': "Неизвестно",
+            'card_type': "debit"
+        }
+
 @login_required
 def add_card(request):
     """Добавление новой карты"""
@@ -789,15 +855,27 @@ def add_card(request):
             # Очистка номера карты от пробелов
             card_number = request.POST.get('card_number').replace(' ', '')
             
+            card_info = get_bank_by_card_number(card_number)
+            
             Card.objects.create(
                 user=request.user,
                 name=request.POST.get('name'),
                 card_number=card_number,
-                bank=request.POST.get('bank'),
-                card_type=request.POST.get('card_type'),
+                bank=card_info['bank_name'],
+                card_type=card_info['card_type'],
                 design=request.POST.get('design'),
                 balance=request.POST.get('balance', 0)
             )
+
+            # Card.objects.create(
+            #     user=request.user,
+            #     name=request.POST.get('name'),
+            #     card_number=card_number,
+            #     bank=request.POST.get('bank'),
+            #     card_type=request.POST.get('card_type'),
+            #     design=request.POST.get('design'),
+            #     balance=request.POST.get('balance', 0)
+            # )
             messages.success(request, 'Карта успешно добавлена')
         except Exception as e:
             messages.error(request, f'Ошибка при добавлении карты: {str(e)}')
@@ -810,11 +888,13 @@ def edit_card(request, card_id):
         card = get_object_or_404(Card, id=card_id, user=request.user)
         try:
             card_number = request.POST.get('card_number').replace(' ', '')
-            
+            # card_info = get_bank_by_card_number(card_number)
             card.name = request.POST.get('name')
             card.card_number = card_number
             card.bank = request.POST.get('bank')
             card.card_type = request.POST.get('card_type')
+            # card.bank = card_info['bank_name']
+            # card.card_type = card_info['card_type']
             card.design = request.POST.get('design')
             card.balance = request.POST.get('balance')
             card.save()
@@ -837,5 +917,100 @@ def delete_card(request, card_id):
                 card.delete()
                 messages.success(request, 'Карта успешно удалена')
         except Exception as e:
-            messages.error(request, f'Ошибка при удалении карты: {str(e)}')
+            messages.error(request, f'Ошибка при удалении кары: {str(e)}')
     return redirect('operations:cards')
+
+@login_required
+def calendar(request):
+    """Отображение календаря с транзакциями"""
+    today = timezone.now().date()
+    year = int(request.GET.get('year', today.year))
+    month = int(request.GET.get('month', today.month))
+    
+    # Получаем первый и последний день месяца
+    first_day = datetime(year, month, 1).date()
+    if month == 12:
+        last_day = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+    else:
+        last_day = datetime(year, month + 1, 1).date() - timedelta(days=1)
+    
+    # Определяем, сколько пустых ячеек нужно в начале (0 = понедельник, 6 = воскресенье)
+    first_weekday = first_day.weekday()
+    
+    # Создаем список для всех дней месяца, включая пустые ячейки
+    calendar_data = []
+    
+    # Добавляем пустые ячейки в начало
+    for _ in range(first_weekday):
+        calendar_data.append({
+            'date': None,
+            'is_empty': True
+        })
+    
+    # Добавляем дни месяца
+    current_date = first_day
+    while current_date <= last_day:
+        day_transactions = Transaction.objects.filter(
+            user=request.user,
+            date=current_date
+        ).select_related('category')
+        
+        day_payments = RegularPayment.objects.filter(
+            user=request.user,
+            next_payment_date=current_date
+        )
+        
+        # Определяем цвет дня на основе транзакций
+        day_color = '#f2f3fb'  # дефолтный цвет
+        if day_transactions.exists():
+            income = day_transactions.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0
+            expense = day_transactions.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0
+            if income > expense:
+                day_color = '#18dccb'
+            elif expense > income:
+                day_color = '#f87f0e'
+            else:
+                day_color = '#2f2cef'
+        elif day_payments.exists():
+            day_color = '#f60cf0'
+            
+        calendar_data.append({
+            'date': current_date,
+            'is_empty': False,
+            'transactions': day_transactions,
+            'regular_payments': day_payments,
+            'color': day_color,
+            'total_income': day_transactions.filter(type='income').aggregate(Sum('amount'))['amount__sum'] or 0,
+            'total_expense': day_transactions.filter(type='expense').aggregate(Sum('amount'))['amount__sum'] or 0,
+        })
+        
+        current_date += timedelta(days=1)
+    
+    # Добавляем пустые ячейки в конец до полной недели
+    while len(calendar_data) % 7 != 0:
+        calendar_data.append({
+            'date': None,
+            'is_empty': True
+        })
+    
+    MONTHS_RU = {
+        1: 'Январь', 2: 'Февраль', 3: 'Март', 4: 'Апрель',
+        5: 'Май', 6: 'Июнь', 7: 'Июль', 8: 'Август',
+        9: 'Сентябрь', 10: 'Октябрь', 11: 'Ноябрь', 12: 'Декабрь'
+    }
+    
+    context = {
+        'calendar_data': calendar_data,
+        'year': year,
+        'month': month,
+        'month_name': f"{MONTHS_RU[month]} {year}",
+        'prev_month': (first_day - timedelta(days=1)).strftime('%Y-%m'),
+        'next_month': (last_day + timedelta(days=1)).strftime('%Y-%m'),
+    }
+    
+    return render(request, 'operations/calendar.html', context)
+
+def get_currency_rates_api(request):
+    """API endpoint для получения курсов валют"""
+    rates = get_currency_rates()
+    return JsonResponse(rates, safe=False)
